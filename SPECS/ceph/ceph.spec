@@ -1,10 +1,20 @@
-#disable debuginfo because ceph-debuginfo rpm is too large
-%define debug_package %{nil}
+# Disable debuginfo because ceph-debuginfo rpm is too large
+%global debug_package %{nil}
+
+# Also strip embedded debug symbols to reduce size
+%global __os_install_post \
+    %{_rpmconfigdir}/brp-compress \
+    %{_rpmconfigdir}/brp-strip %{__strip} \
+    %{_rpmconfigdir}/brp-strip-debug-symbols %{__strip} \
+    %{_rpmconfigdir}/brp-strip-comment-note %{__strip} %{__objdump} \
+    %{_rpmconfigdir}/brp-strip-unneeded %{__strip} \
+    %{_rpmconfigdir}/brp-strip-static-archive %{__strip} \
+    %{nil}
 
 Summary:        User space components of the Ceph file system
 Name:           ceph
-Version:        16.2.0
-Release:        2%{?dist}
+Version:        16.2.10
+Release:        1%{?dist}
 License:        LGPLv2 and LGPLv3 and CC-BY-SA and GPLv2 and Boost and BSD and MIT and Public Domain and GPLv3 and ASL-2.0
 URL:            https://ceph.io/
 Vendor:         Microsoft Corporation
@@ -42,8 +52,6 @@ Source0:        https://download.ceph.com/tarballs/%{name}-%{version}.tar.gz
 %bcond_with selinux
 %bcond_with tcmalloc
 %bcond_with mgr_diskprediction
-
-%define debug_package %{nil}
 
 %if %{with selinux}
 %{!?_selinux_policy_version: %global _selinux_policy_version 0.0.0}
@@ -771,7 +779,7 @@ This package provides Ceph’s default alerts for Prometheus.
 
 # Despite disabling diskprediction, some unpackaged files stick around
 # Delete directories to prevent these files from being built/installed later
-cd /usr/src/mariner/BUILD/%{name}-%{version}
+cd %{_topdir}/BUILD/%{name}-%{version}
 rm -rf ./src/pybind/mgr/diskprediction_local
 rm -rf ./src/pybind/mgr/diskprediction_cloud
 
@@ -943,7 +951,7 @@ chmod 0600 %{buildroot}%{_sharedstatedir}/cephadm/.ssh/authorized_keys
 install -m 0644 -D udev/50-rbd.rules %{buildroot}%{_udevrulesdir}/50-rbd.rules
 
 # sudoers.d
-install -m 0600 -D sudoers.d/ceph-osd-smartctl %{buildroot}%{_sysconfdir}/sudoers.d/ceph-osd-smartctl
+install -m 0600 -D sudoers.d/ceph-smartctl %{buildroot}%{_sysconfdir}/sudoers.d/ceph-smartctl
 
 #set up placeholder directories
 mkdir -p %{buildroot}%{_sysconfdir}/ceph
@@ -965,7 +973,7 @@ mkdir -p %{buildroot}%{_localstatedir}/lib/ceph/bootstrap-rbd
 mkdir -p %{buildroot}%{_localstatedir}/lib/ceph/bootstrap-rbd-mirror
 
 # prometheus alerts
-install -m 644 -D monitoring/prometheus/alerts/ceph_default_alerts.yml %{buildroot}/etc/prometheus/ceph/ceph_default_alerts.yml
+install -m 644 -D monitoring/ceph-mixin/prometheus_alerts.yml %{buildroot}/etc/prometheus/ceph/ceph_default_alerts.yml
 
 %clean
 rm -rf %{buildroot}
@@ -1023,6 +1031,7 @@ rm -rf %{buildroot}
 %attr(750,ceph,ceph) %dir %{_localstatedir}/lib/ceph/bootstrap-mgr
 %attr(750,ceph,ceph) %dir %{_localstatedir}/lib/ceph/bootstrap-rbd
 %attr(750,ceph,ceph) %dir %{_localstatedir}/lib/ceph/bootstrap-rbd-mirror
+%{_sysconfdir}/sudoers.d/ceph-smartctl
 
 %post base
 /sbin/ldconfig
@@ -1244,6 +1253,7 @@ fi
 %{_datadir}/ceph/mgr/localpool
 %{_datadir}/ceph/mgr/mds_autoscaler
 %{_datadir}/ceph/mgr/mirroring
+%{_datadir}/ceph/mgr/nfs
 %{_datadir}/ceph/mgr/orchestrator
 %{_datadir}/ceph/mgr/osd_perf_query
 %{_datadir}/ceph/mgr/osd_support
@@ -1467,7 +1477,6 @@ fi
 %{_unitdir}/ceph-volume@.service
 %attr(750,ceph,ceph) %dir %{_localstatedir}/lib/ceph/osd
 %config(noreplace) %{_sysctldir}/90-ceph-osd.conf
-%{_sysconfdir}/sudoers.d/ceph-osd-smartctl
 
 %post osd
 %systemd_post ceph-osd@\*.service ceph-volume@\*.service ceph-osd.target
@@ -1785,16 +1794,27 @@ exit 0
 %endif
 
 %files grafana-dashboards
+%attr(0755,root,root) %dir %{_sysconfdir}/grafana
+%attr(0755,root,root) %dir %{_sysconfdir}/grafana/dashboards
 %attr(0755,root,root) %dir %{_sysconfdir}/grafana/dashboards/ceph-dashboard
 %config %{_sysconfdir}/grafana/dashboards/ceph-dashboard/*
-%doc monitoring/grafana/dashboards/README
-%doc monitoring/grafana/README.md
 
 %files prometheus-alerts
 %attr(0755,root,root) %dir %{_sysconfdir}/prometheus/ceph
 %config %{_sysconfdir}/prometheus/ceph/ceph_default_alerts.yml
 
 %changelog
+*   Tue Sep 06 2022 Suresh Babu Chalamalasetty <schalam@microsoft.com> 16.2.10-1
+-   Upgrade to 16.2.10 to fix CVE-2022-0670.
+-   Update SPEC file to sync with latest version changes.
+
+*   Thu Feb 17 2022 Andrew Phelps <anphel@microsoft.com> 16.2.0-4
+-   Use _topdir instead of hard-coded value /usr/src/mariner
+
+*   Thu Jul 22 2021 Andrew Phelps <anphel@microsoft.com> 16.2.0-3
+-   Set __os_install_post to reduce package size
+-   Remove duplicate line to disable debug_package
+
 *   Thu Jun 17 2021 Neha Agarwal <nehaagarwal@microsoft.com> 16.2.0-2
 -   Disable debuginfo because ceph-debuginfo rpm is too large
 

@@ -13,11 +13,12 @@ import (
 
 // KernelCommandLine holds extra command line parameters which can be
 // added to the grub config file.
-// - ImaPolicy: A list of IMA policies which will be used together
-// - ExtraCommandLine: Arbitrary parameters which will be appended to the
-//   end of the kernel command line
+//   - ImaPolicy: A list of IMA policies which will be used together
+//   - ExtraCommandLine: Arbitrary parameters which will be appended to the
+//     end of the kernel command line
 type KernelCommandLine struct {
 	ImaPolicy        []ImaPolicy `json:"ImaPolicy"`
+	SELinux          SELinux     `json:"SELinux"`
 	ExtraCommandLine string      `json:"ExtraCommandLine"`
 }
 
@@ -33,6 +34,11 @@ func (k *KernelCommandLine) IsValid() (err error) {
 		if err = ima.IsValid(); err != nil {
 			return
 		}
+	}
+
+	err = k.SELinux.IsValid()
+	if err != nil {
+		return err
 	}
 
 	// A character needs to be set aside for use as the sed delimiter, make sure it isn't included in the provided string

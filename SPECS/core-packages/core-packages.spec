@@ -1,7 +1,7 @@
 Summary:        Metapackage with core sets of packages
 Name:           core-packages
 Version:        0.1
-Release:        23%{?dist}
+Release:        27%{?dist}
 License:        ASL 2.0
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
@@ -22,6 +22,7 @@ Requires:       cracklib-dicts
 Requires:       cryptsetup
 Requires:       dbus
 Requires:       dnf
+Requires:       dnf-utils
 Requires:       file
 Requires:       gdbm
 Requires:       iana-etc
@@ -40,7 +41,7 @@ Requires:       which
 %{summary}
 
 %package        container
-Summary:        Metapackage to install the basic set of packages used all image types.
+Summary:        Metapackage to install the basic set of packages used by all image types.
 Requires:       bash
 Requires:       bzip2
 Requires:       ca-certificates-base
@@ -68,6 +69,7 @@ Requires:       nss-libs
 Requires:       openssl
 Requires:       pkg-config
 Requires:       readline
+Requires:       rpm
 Requires:       rpm-libs
 Requires:       sed
 Requires:       sqlite-libs
@@ -94,6 +96,18 @@ Requires:       zlib
 %files container
 
 %changelog
+* Tue Dec 20 2022 Pawel Winogrodzki <pawelwi@microsoft.com> - 0.1-27
+- Making sure 'rpm' is always part of the base image.
+
+* Wed Dec 15 2021 Chris Co <chrco@microsoft.com> - 0.1-26
+- Remove check-restart and dnf-automatic from core set of packages
+
+* Wed Aug 11 2021 Neha Agarwal <nehaagarwal@microsoft.com> - 0.1-25
+- Add check-restart to the base image
+
+* Wed Aug 11 2021 Neha Agarwal <nehaagarwal@microsoft.com> - 0.1-24
+- Add dnf-automatic and dnf-utils to the base image.
+
 * Sat Jul 24 2021 Jon Slobodzian <joslobo@microsoft.com> - 0.1-23
 - Include new Microsoft repo for x86_64 architectures (temporarily exclude from aarch64)
 

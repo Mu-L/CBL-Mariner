@@ -1,7 +1,7 @@
 Summary:        Kubernetes daemon to detect and report node issues
 Name:           node-problem-detector
 Version:        0.8.8
-Release:        1%{?dist}
+Release:        12%{?dist}
 License:        ASL 2.0
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
@@ -61,6 +61,38 @@ make test
 %config(noreplace) %{_sysconfdir}/node-problem-detector.d/*
 
 %changelog
+* Thu Jun 22 2023 Mitch Zhu <mitchzhu@microsoft.com> - 0.8.8-12
+- Bump release to rebuild with go 1.19.10
+
+* Tue Dec 13 2022 Suresh Babu Chalamalasetty <schalam@microsoft.com> - 0.8.8-11
+- Bump release to rebuild with go 1.18.8-2
+
+* Tue Nov 01 2022 Olivia Crain <oliviacrain@microsoft.com> - 0.8.8-10
+- Bump release to rebuild with go 1.18.8
+
+* Wed Aug 17 2022 Olivia Crain <oliviacrain@microsoft.com> - 0.8.8-9
+- Bump to rebuild with golang 1.18.5-1
+
+* Tue Jun 07 2022 Andrew Phelps <anphel@microsoft.com> - 0.8.8-8
+- Bumping release to rebuild with golang 1.18.3
+
+* Fri Apr 29 2022 chalamalasetty <chalamalasetty@live.com> - 0.8.8-7
+- Bumping 'Release' to rebuild with updated Golang version 1.16.15-2.
+
+* Tue Mar 15 2022 Muhammad Falak <mwani@microsoft.com> - 0.8.8-6
+- Bump release to force rebuild with golang 1.16.15
+
+* Fri Feb 18 2022 Thomas Crain <thcrain@microsoft.com> - 0.8.8-5
+- Bump release to force rebuild with golang 1.16.14
+
+* Wed Jan 19 2022 Henry Li <lihl@microsoft.com> - 0.8.8-4
+- Increment release for force republishing using golang 1.16.12
+
+* Tue Nov 02 2021 Thomas Crain <thcrain@microsoft.com> - 0.8.8-3
+- Increment release for force republishing using golang 1.16.9
+
+* Fri Aug 06 2021 Nicolas Guibourge <nicolasg@microsoft.com> - 0.8.8-2
+- Increment release to force republishing using golang 1.16.7.
 * Tue Jun 15 2021 Henry Beberman <henry.beberman@microsoft.com> - 0.8.8-1
 - Add node-problem-detector spec.
 - Add Mariner to OSVersion detection and disable exe builds in makefile.

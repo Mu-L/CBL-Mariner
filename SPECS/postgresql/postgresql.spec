@@ -1,6 +1,6 @@
 Summary:        PostgreSQL database engine
 Name:           postgresql
-Version:        12.7
+Version:        12.15
 Release:        1%{?dist}
 License:        PostgreSQL
 Vendor:         Microsoft Corporation
@@ -56,7 +56,7 @@ The postgresql-devel package contains libraries and header files for
 developing applications that use postgresql.
 
 %prep
-%setup -q
+%autosetup -p1
 
 %build
 sed -i '/DEFAULT_PGSOCKET_DIR/s@/tmp@/run/postgresql@' src/include/pg_config_manual.h &&
@@ -169,6 +169,18 @@ rm -rf %{buildroot}/*
 %{_libdir}/libpgtypes.a
 
 %changelog
+* Fri Jun 23 2023 Bala <balakumaran.kannan@microsoft.com> - 12.15-1
+- Upgrade to 12.15 to fix CVE-2023-2454
+
+* Thu Oct 06 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 12.12-1
+- Upgrade to 12.12 to fix CVE-2022-1552
+
+* Tue Jul 26 2022 Neha Agarwal <nehaagarwal@microsoft.com> - 12.8-1
+- Update to v12.8 resolve CVE-2021-3677.
+
+* Tue Mar 15 2022 Muhammad Falak <mwani@microsoft.com> - 12.7-2
+- Patch CVE-2021-23222
+
 * Fri Jun 11 2021 Henry Beberman <henry.beberman@microsoft.com> - 12.7-1
 - Update to version 12.7 to resolve CVE-2021-32027.
 

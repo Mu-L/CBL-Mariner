@@ -1,7 +1,7 @@
 Summary:        The Windows Azure Linux Agent
 Name:           WALinuxAgent
 Version:        2.2.54.2
-Release:        1%{?dist}
+Release:        4%{?dist}
 License:        ASL 2.0
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
@@ -9,21 +9,24 @@ Group:          System/Daemons
 URL:            https://github.com/Azure/WALinuxAgent
 #Source0:       https://github.com/Azure/WALinuxAgent/archive/refs/tags/v%{version}.tar.gz
 Source0:        %{name}-%{version}.tar.gz
+Source1:        ephemeral-disk-warning.service
+Source2:        ephemeral-disk-warning.conf
+Source3:        ephemeral-disk-warning
+BuildRequires:  python3
 BuildRequires:  python3-distro
+BuildRequires:  python3-libs
 BuildRequires:  python3-setuptools
 BuildRequires:  python3-xml
-BuildRequires:  python3
-BuildRequires:  python3-libs
 BuildRequires:  systemd
 Requires:       /bin/grep
 Requires:       /bin/sed
 Requires:       iptables
 Requires:       openssh
 Requires:       openssl
-Requires:       python3-pyasn1
-Requires:       python3-xml
 Requires:       python3
 Requires:       python3-libs
+Requires:       python3-pyasn1
+Requires:       python3-xml
 Requires:       sudo
 Requires:       systemd
 Requires:       util-linux
@@ -35,7 +38,7 @@ VMs in the Windows Azure cloud. This package should be installed on Linux disk
 images that are built to run in the Windows Azure environment.
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q
 
 %pre -p /bin/sh
 
@@ -48,16 +51,23 @@ mkdir -p  %{buildroot}/%{_localstatedir}/log
 mkdir -p -m 0700 %{buildroot}/%{_sharedstatedir}/waagent
 mkdir -p %{buildroot}/%{_localstatedir}/log
 touch %{buildroot}/%{_localstatedir}/log/waagent.log
+install -vdm 755 %{buildroot}/%{_sysconfdir}/udev/rules.d
+install -m 644 config/99-azure-product-uuid.rules %{buildroot}/%{_sysconfdir}/udev/rules.d
+install -m 644 config/66-azure-storage.rules %{buildroot}/%{_sysconfdir}/udev/rules.d
 # python refers to python2 version on CBL-Mariner hence update to use python3
 sed -i 's,#!/usr/bin/env python,#!/usr/bin/python3,' %{buildroot}%{_bindir}/waagent
 sed -i 's,#!/usr/bin/env python,#!/usr/bin/python3,' %{buildroot}%{_bindir}/waagent2.0
 sed -i 's,/usr/bin/python ,/usr/bin/python3 ,' %{buildroot}%{_lib}/systemd/system/waagent.service
+install -m 644 %{SOURCE1} %{buildroot}%{_libdir}/systemd/system/ephemeral-disk-warning.service
+install -m 644 %{SOURCE2} %{buildroot}%{_sysconfdir}/ephemeral-disk-warning.conf
+install -m 644 %{SOURCE3} %{buildroot}%{_bindir}/ephemeral-disk-warning
 
 %check
 python3 setup.py check && python3 setup.py test
 
 %post
 %systemd_post waagent.service
+%systemd_post ephemeral-disk-warning.service
 
 %preun
 %systemd_preun waagent.service
@@ -67,16 +77,29 @@ python3 setup.py check && python3 setup.py test
 
 %files
 %{_lib}/systemd/system/*
+%{_sysconfdir}/udev/rules.d/*
 %defattr(0644,root,root,0755)
 %license LICENSE.txt
 %attr(0755,root,root) %{_bindir}/waagent
 %attr(0755,root,root) %{_bindir}/waagent2.0
+%attr(0755,root,root) %{_bindir}/ephemeral-disk-warning
 %config %{_sysconfdir}/waagent.conf
+%config %{_sysconfdir}/ephemeral-disk-warning.conf
 %ghost %{_localstatedir}/log/waagent.log
 %dir %attr(0700, root, root) %{_sharedstatedir}/waagent
 %{_lib}/python3.7/site-packages/*
 
 %changelog
+* Tue Nov 29 2022 Nan Liu <liunan@microsoft.com> - 2.2.54.2-4
+- Add ephemeral-disk-warning.service
+
+* Tue Dec 14 2021 Neha Agarwal <nehaagarwal@microsoft.com> - 2.2.54.2-3
+- Include the 66-azure-storage udev rule.
+
+* Thu Sep 16 2021 Henry Beberman <henry.beberman@microsoft.com> - 2.2.54.2-2
+- Include the 99-azure-product-uuid udev rule.
+- Spec linted.
+
 * Mon May 24 2021 Suresh Babu Chalamalasetty <schalam@microsoft.com> - 2.2.54.2-1
 - Upgrade to version 2.2.54.2 which has Mariner distro support.
 

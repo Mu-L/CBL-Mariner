@@ -1,10 +1,14 @@
 {
     "packages": [
         "cloud-init",
+        "cloud-init-azure-kvp",
         "cloud-utils-growpart",
         "dhcp-client",
         "hyperv-daemons",
+        "netplan",
         "openssh-server",
+        "python-xml",
+        "rsyslog",
         "WALinuxAgent"
     ]
 }

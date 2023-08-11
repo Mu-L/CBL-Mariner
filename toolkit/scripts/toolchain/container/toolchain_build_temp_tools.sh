@@ -19,6 +19,7 @@ LFS_TGT=$(uname -m)-lfs-linux-gnu
 echo Binutils-2.36.1 - Pass 1
 tar xf binutils-2.36.1.tar.xz
 pushd binutils-2.36.1
+patch -Np1 -i /tools/CVE-2021-45078.patch
 mkdir -v build
 cd build
 ../configure --prefix=/tools \
@@ -113,14 +114,15 @@ rm -rf gcc-9.1.0
 
 touch $LFS/logs/temptoolchain/status_gcc_pass1_complete
 
-echo Linux-5.10.52.1 API Headers
-tar xf kernel-5.10.52.1.tar.gz
-pushd CBL-Mariner-Linux-Kernel-rolling-lts-mariner-5.10.52.1
+KERNEL_VERSION="5.10.189.1"
+echo Linux-${KERNEL_VERSION} API Headers
+tar xf kernel-${KERNEL_VERSION}.tar.gz
+pushd CBL-Mariner-Linux-Kernel-rolling-lts-mariner-${KERNEL_VERSION}
 make mrproper
 make headers
 cp -rv usr/include/* /tools/include
 popd
-rm -rf CBL-Mariner-Linux-Kernel-rolling-lts-mariner-5.10.52.1
+rm -rf CBL-Mariner-Linux-Kernel-rolling-lts-mariner-${KERNEL_VERSION}
 
 touch $LFS/logs/temptoolchain/status_kernel_headers_complete
 
@@ -185,6 +187,7 @@ touch $LFS/logs/temptoolchain/status_libstdc++_complete
 echo Binutils-2.36.1 - Pass 2
 tar xf binutils-2.36.1.tar.xz
 pushd binutils-2.36.1
+patch -Np1 -i /tools/CVE-2021-45078.patch
 mkdir -v build
 cd build
 CC=$LFS_TGT-gcc                  \
@@ -358,9 +361,9 @@ rm -rf m4-1.4.18
 
 touch $LFS/logs/temptoolchain/status_m4_complete
 
-echo Ncurses-6.2
-tar xf ncurses-6.2.tar.gz
-pushd ncurses-6.2
+echo Ncurses-6.3
+tar xf ncurses-6.3-20220612.tgz
+pushd ncurses-6.3-20220612
 sed -i s/mawk// configure
 ./configure --prefix=/tools \
             --with-shared   \
@@ -372,7 +375,7 @@ make -j$(nproc)
 make install
 ln -s libncursesw.so /tools/lib/libncurses.so
 popd
-rm -rf ncurses-6.2
+rm -rf ncurses-6.3-20220612
 
 touch $LFS/logs/temptoolchain/status_ncurses_complete
 
@@ -540,15 +543,15 @@ rm -rf perl-5.30.3
 
 touch $LFS/logs/temptoolchain/status_perl_complete
 
-echo Python-3.7.10
-tar xf Python-3.7.10.tar.xz
-pushd Python-3.7.10
+echo Python-3.7.16
+tar xf Python-3.7.16.tar.xz
+pushd Python-3.7.16
 sed -i '/def add_multiarch_paths/a \        return' setup.py
 ./configure --prefix=/tools --without-ensurepip
 make -j$(nproc)
 make install
 popd
-rm -rf Python-3.7.10
+rm -rf Python-3.7.16
 
 touch $LFS/logs/temptoolchain/status_python_complete
 

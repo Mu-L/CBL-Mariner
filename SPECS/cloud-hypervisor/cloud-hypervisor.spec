@@ -1,15 +1,19 @@
 Summary:        A Rust-VMM based cloud hypervisor from Intel
 Name:           cloud-hypervisor
-Version:        0.6.0
-Release:        7%{?dist}
+Version:        22.0
+Release:        3%{?dist}
 License:        ASL 2.0 or BSD
 URL:            https://github.com/cloud-hypervisor/cloud-hypervisor
 Group:          Development/Tools
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
-#Source0:       %{url}/archive/v%{version}.tar.gz
-Source0:        %{name}-%{version}.tar.gz
-Source1:        %{name}-%{version}-cargo.tar.gz
+Source0:        %{url}/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
+# Note: the %%{name}-%%{version}-cargo-%%{release}.tar.gz file contains a cache created by capturing the contents downloaded into $CARGO_HOME.
+Source1:        %{name}-%{version}-cargo-%{release}.tar.gz
+# Note: the %%{name}-%%{version}-vendor-%%{release}.tar.gz file contains vendor sources by capturing the contents downloaded into "vendor" folder when "cargo vendor" is run.
+Source2:        %{name}-%{version}-vendor-%{release}.tar.gz
+Patch0:         CVE-2023-28448.patch
+Patch1:         CVE-2023-2650.patch
 ExclusiveArch:  x86_64
 
 BuildRequires:  gcc
@@ -23,14 +27,14 @@ A Rust-VMM based cloud hypervisor from Intel.
 
 %prep
 # Setup .cargo directory
-mkdir -p $HOME
-pushd $HOME
 tar xf %{SOURCE1} --no-same-owner
-popd
+%patch0 -p1
 %setup -q
+%patch1 -p1
+tar xf %{SOURCE2} -C ../ --no-same-owner
 
 %build
-cargo build --release
+CARGO_HOME=$(pwd)/../.cargo cargo build --release --offline
 
 %install
 install -d %{buildroot}%{_bindir}
@@ -38,9 +42,6 @@ install -D -m755 target/release/ch-remote %{buildroot}%{_bindir}
 install -D -m755 target/release/cloud-hypervisor %{buildroot}%{_bindir}
 install -d %{buildroot}%{_libdir}
 install -d %{buildroot}%{_libdir}/cloud-hypervisor
-install -D -m755 target/release/vhost_user_blk %{buildroot}%{_libdir}/cloud-hypervisor
-install -D -m755 target/release/vhost_user_fs %{buildroot}%{_libdir}/cloud-hypervisor
-install -D -m755 target/release/vhost_user_net %{buildroot}%{_libdir}/cloud-hypervisor
 
 %files
 %defattr(-,root,root)
@@ -50,6 +51,15 @@ install -D -m755 target/release/vhost_user_net %{buildroot}%{_libdir}/cloud-hype
 %exclude %{_libdir}/debug
 
 %changelog
+* Tue Jul 04 2023 Suresh Thelkar <sthelkar@microsoft.com> - 22.0-3
+- Patch CVE-2023-0465 and CVE-2023-2650
+
+* Wed Apr 05 2023 Henry Beberman <henry.beberman@microsoft.com> - 22.0-2
+- Patch CVE-2023-28448 in vendored versionize crate
+
+* Wed Mar 09 2022 Pawel Winogrodzki <pawelwi@microsoft.com> - 22.0-1
+- Updating to version 22.0 to build with 'rust' 1.59.0.
+
 * Mon Apr 26 2021 Thomas Crain <thcrain@microsoft.com> - 0.6.0-7
 - Bump release to rebuild with rust 1.47.0-3 (security update)
 

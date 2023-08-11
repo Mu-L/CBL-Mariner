@@ -3,7 +3,7 @@
 %define uname_r %{version}-%{release}
 Summary:        Linux Kernel optimized for Hyper-V
 Name:           kernel-hyperv
-Version:        5.10.52.1
+Version:        5.10.189.1
 Release:        1%{?dist}
 License:        GPLv2
 Vendor:         Microsoft Corporation
@@ -14,7 +14,8 @@ URL:            https://github.com/microsoft/CBL-Mariner-Linux-Kernel
 Source0:        kernel-%{version}.tar.gz
 Source1:        config
 Source2:        sha512hmac-openssl.sh
-Source3:        cbl-mariner-ca-20210127.pem
+Source3:        cbl-mariner-ca-20211013.pem
+Patch0:         0001-clocksource-drivers-hyper-v-Re-enable-VDSO_CLOCKMODE.patch
 BuildRequires:  audit-devel
 BuildRequires:  bash
 BuildRequires:  bc
@@ -90,11 +91,16 @@ This package contains the 'perf' performance analysis tools for Linux kernel.
 
 %prep
 %setup -q -n CBL-Mariner-Linux-Kernel-rolling-lts-mariner-%{version}
+%patch0 -p1
 
 %build
 make mrproper
 
 cp %{SOURCE1} .config
+
+# Add CBL-Mariner cert into kernel's trusted keyring
+cp %{SOURCE3} certs/mariner.pem
+sed -i 's#CONFIG_SYSTEM_TRUSTED_KEYS=""#CONFIG_SYSTEM_TRUSTED_KEYS="certs/mariner.pem"#' .config
 
 cp .config current_config
 sed -i 's/CONFIG_LOCALVERSION=""/CONFIG_LOCALVERSION="-%{release}"/' .config
@@ -114,9 +120,6 @@ if [ -s config_diff ]; then
 #  (DISABLE THIS IF INTENTIONALLY UPDATING THE CONFIG FILE)
     exit 1
 fi
-
-# Add CBL-Mariner cert into kernel's trusted keyring
-cp %{SOURCE3} certs/mariner.pem
 
 make VERBOSE=1 KBUILD_BUILD_VERSION="1" KBUILD_BUILD_HOST="CBL-Mariner" ARCH=x86_64 %{?_smp_mflags}
 make -C tools perf
@@ -152,7 +155,7 @@ install -vm 600 arch/x86/boot/bzImage %{buildroot}/boot/vmlinuz-%{uname_r}
 install -vm 400 System.map %{buildroot}/boot/System.map-%{uname_r}
 install -vm 600 .config %{buildroot}/boot/config-%{uname_r}
 cp -r Documentation/*        %{buildroot}%{_defaultdocdir}/linux-%{uname_r}
-install -vm 644 vmlinux %{buildroot}%{_lib}/debug/lib/modules/%{uname_r}/vmlinux-%{uname_r}
+install -vm 744 vmlinux %{buildroot}%{_lib}/debug/lib/modules/%{uname_r}/vmlinux-%{uname_r}
 # `perf test vmlinux` needs it
 ln -s vmlinux-%{uname_r} %{buildroot}%{_lib}/debug/lib/modules/%{uname_r}/vmlinux
 
@@ -171,7 +174,7 @@ cp %{buildroot}/boot/.vmlinuz-%{uname_r}.hmac %{buildroot}/lib/modules/%{uname_r
 # Register myself to initramfs
 mkdir -p %{buildroot}/%{_localstatedir}/lib/initramfs/kernel
 cat > %{buildroot}/%{_localstatedir}/lib/initramfs/kernel/%{uname_r} << "EOF"
---add-drivers "hv_utils hv_vmbus hv_storvsc hv_netvsc hv_sock hv_balloon cn"
+--add-drivers "hv_utils hv_vmbus hv_storvsc hv_netvsc hv_sock hv_balloon"
 EOF
 
 #    Cleanup dangling symlinks
@@ -267,6 +270,207 @@ ln -sf linux-%{uname_r}.cfg /boot/mariner.cfg
 %{_libdir}/perf/include/bpf/*
 
 %changelog
+* Wed Aug 09 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.189.1-1
+- Auto-upgrade to 5.10.189.1
+
+* Mon Jul 31 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.188.1-1
+- Auto-upgrade to 5.10.188.1
+
+* Wed Jul 26 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.187.1-1
+- Auto-upgrade to 5.10.187.1
+
+* Wed Jun 28 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.185.1-1
+- Auto-upgrade to 5.10.185.1
+
+* Tue Jun 13 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.183.1-1
+- Auto-upgrade to 5.10.183.1
+
+* Fri Jun 02 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.181.1-1
+- Auto-upgrade to 5.10.181.1
+
+* Tue May 23 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.180.1-1
+- Auto-upgrade to 5.10.180.1
+
+* Wed May 10 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.179.1-1
+- Auto-upgrade to 5.10.179.1
+
+* Tue Apr 11 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.177.1-1
+- Auto-upgrade to 5.10.177.1
+
+* Tue Mar 14 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.174.1-1
+- Auto-upgrade to 5.10.174.1
+
+* Mon Mar 06 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.172.1-1
+- Auto-upgrade to 5.10.172.1
+
+* Wed Feb 22 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.168.1-1
+- Auto-upgrade to 5.10.168.1
+
+* Wed Feb 15 2023 Rachel Menge <rachelmenge@microsoft.com> - 5.10.167.1-2
+- Install vmlinux as root executable for debuginfo
+
+* Tue Feb 07 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.167.1-1
+- Auto-upgrade to 5.10.167.1
+
+* Thu Jan 26 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.165.1-1
+- Auto-upgrade to 5.10.165.1
+
+* Fri Jan 20 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.164.1-1
+- Auto-upgrade to 5.10.164.1
+
+* Sat Jan 14 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.162.1-1
+- Auto-upgrade to 5.10.162.1
+
+* Fri Dec 23 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.161.1-1
+- Auto-upgrade to 5.10.161.1
+
+* Tue Dec 13 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.158.1-1
+- Auto-upgrade to 5.10.158.1
+
+* Wed Dec 07 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.157.1-1
+- Auto-upgrade to 5.10.157.1
+
+* Tue Nov 29 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.156.1-1
+- Auto-upgrade to 5.10.156.1
+
+* Fri Nov 18 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.155.1-1
+- Auto-upgrade to 5.10.155.1
+
+* Tue Nov 08 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.153.1-1
+- Auto-upgrade to 5.10.153.1
+
+* Tue Nov 01 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.152.1-1
+- Upgrade to 5.10.152.1
+
+* Wed Oct 19 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.149.1-1
+- Upgrade to 5.10.149.1
+
+* Tue Sep 27 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.145.1-1
+- Upgrade to 5.10.145.1
+
+* Thu Sep 22 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.144.1-1
+- Upgrade to 5.10.144.1
+
+* Wed Sep 14 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.142.1-1
+- Upgrade to 5.10.142.1
+
+* Thu Sep 08 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.139.1-1
+- Upgrade to 5.10.139.1
+
+* Tue Aug 23 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.134.1-1
+- Upgrade to 5.10.134.1
+
+* Wed Aug 17 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.133.1-1
+- Update source to 5.10.133.1
+
+* Sun Jul 24 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.131.1-1
+- Update source to 5.10.131.1
+
+* Wed Jul 06 2022 Max Brodeur-Urbas <maxbr@microsoft.com> - 5.10.128.1-1
+- Update source to 5.10.128.1
+
+* Mon Jun 20 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.123.1-1
+- Update source to 5.10.123.1
+
+* Tue May 24 2022 Max Brodeur-Urbas <maxbr@microsoft.com> - 5.10.117.1-1
+- Update source to 5.10.117.1
+
+* Tue May 17 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.116.1-1
+- Update source to 5.10.116.1
+
+* Tue Apr 19 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.111.1-1
+- Update source to 5.10.111.1
+
+* Fri Apr 01 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.109.1-2
+- Remove hardcoded mariner.pem from configs and instead insert during
+  the build phase
+
+* Tue Mar 29 2022 Max Brodeur-Urbas <maxbr@microsoft.com> - 5.10.109.1-1
+- Update source to 5.10.109.1
+- Remove CVE-2022-24958.patch and CVE-2022-1016.patch
+
+* Fri Mar 25 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.102.1-3
+- Apply CVE-2022-1016.patch
+
+* Fri Mar 18 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.102.1-2
+- Disable CONFIG_FW_LOADER_USER_HELPER_FALLBACK
+
+* Mon Feb 28 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.102.1-1
+- Update source to 5.10.102.1
+- Apply CVE-2022-24958.patch
+- Remove CVE-2021-43976.patch and CVE-2022-0435.patch
+
+* Fri Feb 11 2022 Vince Perri <viperri@microsoft.com> - 5.10.93.1-4
+- Add compressed firmware support
+
+* Wed Feb 09 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.93.1-3
+- Address CVE-2022-0435 with patch
+
+* Thu Jan 27 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.93.1-2
+- Bump release number to match kernel release
+
+* Mon Jan 24 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.93.1-1
+- Update source to 5.10.93.1
+
+* Thu Jan 20 2022 Chris Co <chrco@microsoft.com> - 5.10.89.1-2
+- Rotate Mariner cert 
+
+* Sun Jan 16 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.89.1-1
+- Update source to 5.10.89.1
+- Remove patch add-linux-syscall-license-info.patch
+
+* Fri Jan 14 2022 Henry Li <lihl@microsoft.com> - 5.10.88.1-3
+- Bump release number to match kernel release
+
+* Wed Jan 12 2022 Cameron Baird <cameronbaird@microsoft.com> - 5.10.88.1-2
+- Bump release number to match kernel release
+
+* Mon Jan 03 2022 Cameron Baird <cameronbaird@microsoft.com> - 5.10.88.1-1
+- Update Kernel source to 5.10.88.1
+- Apply patch to address CVE-2021-43976
+
+* Mon Nov 29 2021 Suresh Babu Chalamalasetty <schalam@microsoft.com> - 5.10.78.1-2
+- Bump release number to match kernel release
+
+* Mon Nov 08 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.78.1-1
+- Update source to 5.10.78.1
+- Add patch to fix SPDX-License-Identifier in headers
+
+* Tue Oct 26 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.74.1-2
+- Bump release number to match kernel release
+
+* Tue Oct 19 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.74.1-1
+- Update source to 5.10.74.1
+- License verified
+
+* Thu Oct 07 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.69.1-1
+- Update source to 5.10.69.1
+
+* Wed Sep 22 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.64.1-3
+- Bump release number to match kernel release
+
+* Tue Sep 21 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.64.1-2
+- Bump release number to match kernel release
+
+* Mon Sep 20 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.64.1-1
+- Update source to 5.10.64.1
+
+* Mon Sep 13 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.60.1-2
+- Remove cn from dracut drivers argument
+
+* Mon Aug 23 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.60.1-1
+- Update source to 5.10.60.1
+- Remove patch for CDROM eject errors
+
+* Thu Aug 12 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.57.1-1
+- Update source to 5.10.57.1
+
+* Tue Aug 03 2021 Chris Co <chrco@microsoft.com> - 5.10.52.1-3
+- Add patch to fix VDSO in HyperV
+
+* Fri Jul 30 2021 Chris Co <chrco@microsoft.com> - 5.10.52.1-2
+- Add patch to fix CDROM eject errors
+
 * Tue Jul 20 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.52.1-1
 - Update source to 5.10.52.1
 
@@ -306,7 +510,7 @@ ln -sf linux-%{uname_r}.cfg /boot/mariner.cfg
 * Thu May 20 2021 Nicolas Ontiveros <niontive@microsoft.com> - 5.10.32.1-4
 - Bump release number to match kernel-signed update
 
-* Tue May 17 2021 Andrew Phelps <anphel@microsoft.com> - 5.10.32.1-3
+* Tue May 18 2021 Andrew Phelps <anphel@microsoft.com> - 5.10.32.1-3
 - Update CONFIG_LD_VERSION for binutils 2.36.1
 - Remove build-id match check
 

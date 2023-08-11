@@ -1,7 +1,7 @@
 Summary: The open-source application container engine
 Name:    moby-engine
 Version: 19.03.15+azure
-Release: 2%{?dist}
+Release: 14%{?dist}
 License: ASL 2.0
 Group:   Tools/Container
 
@@ -27,6 +27,8 @@ Source2: docker.service
 Source3: docker.socket
 Source4: LICENSE
 Source5: NOTICE
+Patch0:  CVE-2021-41091.patch
+Patch1:  CVE-2021-41089.patch
 URL: https://mobyproject.org
 Vendor: Microsoft Corporation
 Distribution: Mariner
@@ -76,7 +78,7 @@ Moby is an open-source project created by Docker to enable and accelerate softwa
 %define OUR_GOPATH %{_topdir}/.gopath
 
 %prep
-%setup -q -n %{name}-%{version} -c
+%autosetup -p1 -c
 mkdir -p %{OUR_GOPATH}/src/github.com/docker
 ln -sfT %{_topdir}/BUILD/%{name}-%{version}/libnetwork %{OUR_GOPATH}/src/github.com/docker/libnetwork
 mkdir -p '%{OUR_GOPATH}/src/github.com/docker'
@@ -149,6 +151,43 @@ fi
 /usr/share/doc/%{name}-%{version}/*
 
 %changelog
+* Thu Jun 22 2023 Mitch Zhu <mitchzhu@microsoft.com> - 19.03.15+azure-14
+- Bump release to rebuild with go 1.19.10
+
+* Tue Dec 13 2022 Suresh Babu Chalamalasetty <schalam@microsoft.com> - 19.03.15+azure-13
+- Bump release to rebuild with go 1.18.8-2
+
+* Tue Nov 01 2022 Olivia Crain <oliviacrain@microsoft.com> - 19.03.15+azure-12
+- Bump release to rebuild with go 1.18.8
+
+* Wed Aug 17 2022 Olivia Crain <oliviacrain@microsoft.com> - 19.03.15+azure-11
+- Bump to rebuild with golang 1.18.5-1
+
+* Tue Jun 07 2022 Andrew Phelps <anphel@microsoft.com> - 19.03.15+azure-10
+- Bumping release to rebuild with golang 1.18.3
+
+* Fri Apr 29 2022 chalamalasetty <chalamalasetty@live.com> - 19.03.15+azure-9
+- Bumping 'Release' to rebuild with updated Golang version 1.16.15-2.
+
+* Tue Mar 15 2022 Muhammad Falak <mwani@microsoft.com> - 19.03.15+azure-8
+- Bump release to force rebuild with golang 1.16.15
+
+* Fri Feb 18 2022 Thomas Crain <thcrain@microsoft.com> - 19.03.15+azure-7
+- Bump release to force rebuild with golang 1.16.14
+
+* Wed Jan 19 2022 Henry Li <lihl@microsoft.com> - 19.03.15+azure-6
+- Increment release for force republishing using golang 1.16.12
+
+* Tue Nov 02 2021 Thomas Crain <thcrain@microsoft.com> - 19.03.15+azure-5
+- Increment release for force republishing using golang 1.16.9
+
+* Mon Oct 04 2021 Henry Beberman <henry.beberman@microsoft.com> 19.03.15+azure-4
+- Patch CVE-2021-41091 and CVE-2021-41089
+- Switch to autosetup
+
+* Fri Aug 06 2021 Nicolas Guibourge <nicolasg@microsoft.com> 19.03.15+azure-3
+- Increment release to force republishing using golang 1.16.7.
+
 * Tue Jun 08 2021 Henry Beberman <henry.beberman@microsoft.com> 19.03.15+azure-2
 - Increment release to force republishing using golang 1.15.13.
 

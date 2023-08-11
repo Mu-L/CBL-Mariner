@@ -1,51 +1,68 @@
-Summary:	opentype text shaping engine
-Name:		harfbuzz
-Version:	1.9.0
-Release:    4%{?dist}
-License:	MIT
-URL:		http://harfbuzz.org
-Group:		System Environment/Libraries
+Summary:        opentype text shaping engine
+Name:           harfbuzz
+Version:        3.4.0
+Release:        2%{?dist}
+License:        MIT
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
-Source0:	    https://www.freedesktop.org/software/harfbuzz/release/%{name}-%{version}.tar.bz2
-BuildRequires:	glib-devel
-BuildRequires:	freetype
-BuildRequires:	freetype-devel
-Requires:	    glib
+Group:          System Environment/Libraries
+URL:            https://harfbuzz.github.io/
+Source0:        https://github.com/%{name}/%{name}/releases/download/%{version}/%{name}-%{version}.tar.xz
+Patch0:         CVE-2023-25193.patch
+BuildRequires:  pkg-config
+BuildRequires:  cairo
+BuildRequires:  pkgconfig(freetype2)
+BuildRequires:  pkgconfig(glib-2.0)
+BuildRequires:  pkgconfig(icu-uc)
+BuildRequires:  gcc
+BuildRequires:  gobject-introspection-devel
+BuildRequires:  gtk-doc
+BuildRequires:  make
+%global with_check 1
+%if %{with_check}
+BuildRequires:  python3-devel
+%endif
+Requires:       glib
 
 %description
 HarfBuzz is an implementation of the OpenType Layout engine.
 
-%package	devel
-Summary:	Header and development files
-Requires:	%{name} = %{version}-%{release}
-Requires:	glib-devel
+%package	    devel
+Summary:        Header and development files
+Requires:       %{name} = %{version}-%{release}
+Requires:       pkgconfig(glib-2.0)
+Provides:       %{name}-icu = %{version}-%{release}
+
 %description	devel
 It contains the libraries and header files to create applications
 
 %prep
-%setup -q
+%autosetup -p1
+
 %build
-%configure
-make %{?_smp_mflags}
+%configure --disable-static --with-gobject --enable-introspection
+%{make_build}
 
 %install
-make DESTDIR=%{buildroot} install
-find %{buildroot} -name '*.la' -delete
+%{make_install}
+rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 
 %check
-make %{?_smp_mflags} -k check
+# Remove all instances of "/usr/bin/env python" shabangs from test code
+find . -type f -name "*.py" -exec sed -i'' -e '1 s|^#!\s*/usr/bin/env\s\+python3\d\?|#! %{python3}|' {} +
+%make_build -k check
 
-%post
-/sbin/ldconfig
+%ldconfig_scriptlets
 
-%postun
-/sbin/ldconfig
+%ldconfig_scriptlets devel
 
 %files
 %defattr(-,root,root)
 %license COPYING
+%doc NEWS AUTHORS README
 %{_libdir}/*.so*
+%dir %{_libdir}/girepository-1.0
+%{_libdir}/girepository-1.0/HarfBuzz-0.0.typelib
 %{_bindir}/*
 
 %files devel
@@ -56,19 +73,54 @@ make %{?_smp_mflags} -k check
 %{_libdir}/*.so
 %{_libdir}/pkgconfig/*.pc
 %{_libdir}/cmake/harfbuzz/harfbuzz-config.cmake
+%dir %{_datadir}/gir-1.0
+%{_datadir}/gir-1.0/HarfBuzz-0.0.gir
+%{_libdir}/libharfbuzz-icu.so.*
 
 %changelog
+* Wed Mar 08 2023 Muhammad Falak <mwani@microsoft.com> - 3.4.0-2
+- Add BR on cairo instead of pkgconfig(cairo)
+
+* Tue Feb 28 2023 Mandeep Plaha <mandeepplaha@microsoft.com> - 3.4.0-1
+- Upgrade version to match with version in Mariner 2.0
+- Bring patch from Mariner 2.0 to fix CVE-2023-25193
+
+* Wed Nov 10 2021 Hideyuki Nagase <hideyukn@microsoft.com> - 2.6.4-4
+- Add which and binutils when check is enabled
+- Replace %{python3} with %{_bindir}/python3
+- Replace pkgconfig(glib-2.0) with glib-devel
+- Replace %ldconfig_scriptlets with /sbin/ldconfig
+
+* Thu Jun 24 2021 Thomas Crain <thcrain@microsoft.com> - 2.6.4-3
+- Fix pkgconfig(freetype2) dependency (incorrect pkgconfig name)
+
+* Mon Jun 21 2021 Thomas Crain <thcrain@microsoft.com> - 2.6.4-2
+- Build harfbuzz with icu libraries, fontconfig libraries
+- Use pkgconfig(*)-style dependencies
+- Provide harbuzz-icu from devel subpackage
+- Use macros throughout the spec
+- Fix package tests by fixing Python shabangs
+- Update URL
+
+* Fri Apr 16 2021 Henry Li <lihl@microsoft.com> - 2.6.4-1
+- Upgrade to version 2.6.4
+- Remove freetype from build requirement
+
 * Sat May 09 2020 Nick Samson <nisamson@microsoft.com> - 1.9.0-4
 - Added %%license line automatically
 
-*   Mon Apr 20 2020 Nicolas Ontiveros <niontive@microsoft.com> 1.9.0-3
--   Rename "freetype2" to "freetype". 
--   Remove sha1 macro.
-*   Tue Sep 03 2019 Mateusz Malisz <mamalisz@microsoft.com> 1.9.0-2
--   Initial CBL-Mariner import from Photon (license: Apache2).
-*       Wed Sep 12 2018 Anish Swaminathan <anishs@vmware.com> 1.9.0-1
--       Update to version 1.9.0
-*       Thu Dec 07 2017 Alexey Makhalov <amakhalov@vmware.com> 1.4.5-2
--       Add glib requirement
-*       Wed Apr 05 2017 Dheeraj Shetty <dheerajs@vmware.com> 1.4.5-1
--       Initial version
+* Mon Apr 20 2020 Nicolas Ontiveros <niontive@microsoft.com> - 1.9.0-3
+- Rename "freetype2" to "freetype". 
+- Remove sha1 macro.
+
+* Tue Sep 03 2019 Mateusz Malisz <mamalisz@microsoft.com> - 1.9.0-2
+- Initial CBL-Mariner import from Photon (license: Apache2).
+
+* Wed Sep 12 2018 Anish Swaminathan <anishs@vmware.com> - 1.9.0-1
+- Update to version 1.9.0
+
+* Thu Dec 07 2017 Alexey Makhalov <amakhalov@vmware.com> - 1.4.5-2
+- Add glib requirement
+
+* Wed Apr 05 2017 Dheeraj Shetty <dheerajs@vmware.com> - 1.4.5-1
+- Initial version

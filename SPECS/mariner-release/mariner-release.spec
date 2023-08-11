@@ -1,7 +1,7 @@
 Summary:       CBL-Mariner release files
 Name:          mariner-release
 Version:       1.0
-Release:       20%{?dist}
+Release:       66%{?dist}
 License:       MIT
 Group:         System Environment/Base
 URL:           https://aka.ms/cbl-mariner
@@ -36,7 +36,7 @@ cat > %{buildroot}/usr/lib/os-release << EOF
 NAME="Common Base Linux Mariner"
 VERSION="%{mariner_release_version}"
 ID=mariner
-VERSION_ID=$version_id
+VERSION_ID="$version_id"
 PRETTY_NAME="CBL-Mariner/Linux"
 ANSI_COLOR="1;34"
 HOME_URL="%{url}"
@@ -67,6 +67,106 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/issue.net
 
 %changelog
+* Fri Aug 04 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 1.0-66
+- Bump release for August 2023 Update
+
+* Thu Jun 29 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 1.0-65
+- Bump release for June 2023 Update 3
+
+* Thu Jun 15 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 1.0-64
+- Bump release for June 2023 Update 2
+
+* Sat Jun 03 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 1.0-63
+- Bump release for June 2023 Update
+
+* Tue May 16 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 1.0-62
+- Bump release for May 2023 Update
+
+*   Wed Apr 26 2023 Jon Slobodzian <joslobo@microsoft.com> - 1.0-61
+-   Updating version for April update 2
+*   Thu Apr 13 2023 Andrew Phelps <anphel@microsoft.com> - 1.0-60
+-   Updating version for April update.
+*   Wed Mar 29 2023 Jon Slobodzian <joslobo@microsoft.com> - 1.0-59
+-   Updating version for March update2.
+*   Mon Mar 06 2023 Jon Slobodzian <joslobo@microsoft.com> - 1.0-58
+-   Updating version for March update.
+*   Fri Feb 24 2023 Olivia Crain <oliviacrain@microsoft.com> - 1.0-57
+-   Updating version for February update 3.
+*   Tue Feb 14 2023 Jon Slobodzian <joslobo@microsoft.com> - 1.0-56
+-   Updating version for February update 2.
+*   Tue Feb 07 2023 Jon Slobodzian <joslobo@microsoft.com> - 1.0-55
+-   Updating version for February update.
+*   Fri Jan 20 2023 Riken Maharjan <rmaharjan@microsoft.com> - 1.0-54
+-   Updating version for January update 2.
+*   Thu Jan 05 2023 Jon Slobodzian <joslobo@microsoft.com> - 1.0-53
+-   Updating version for January update.
+*   Mon Dec 19 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-52
+-   Updating version for December update 3.
+*   Mon Dec 12 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-51
+-   Updating version for December update 2.
+*   Thu Dec 01 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-50
+-   Updating version for December update.
+*   Wed Nov 09 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-49
+-   Updating version for November update.
+*   Fri Oct 21 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-48
+-   Updating version for October update 2
+*   Thu Oct 06 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-47
+-   Updating version for October update.
+*   Fri Sep 23 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-46
+-   Updating version for September update 2.
+*   Fri Sep 09 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-45
+-   Updating version for September update.
+*   Tue Aug 16 2022 Pawel Winogrodzki <pawelwi@microsoft.com> - 1.0-44
+-   Updating version for August update 2.
+*   Wed Aug 04 2022 Andrew Phelps <anphel@microsoft.com> - 1.0-43
+-   Updating version for August update.
+*   Fri Jul 08 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-42
+-   Updating version for July Update.
+*   Tue Jun 07 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-41
+-   Updating version for June update.
+*   Fri May 20 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-40
+-   Updating version for May update.
+*   Sat Apr 09 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-39
+-   Updating version for April update.
+*   Wed Mar 30 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-38
+-   Updating version for March update 3.
+*   Tue Mar 15 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-37
+-   Updating version for March update 2.
+*   Sat Mar 05 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-36
+-   Updating version for March update.
+*   Fri Feb 25 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-35
+-   Updating version for February update 2.
+*   Thu Feb 24 2022 Pawel Winogrodzki <pawelwi@microsoft.com> - 1.0-34
+-   Surrounding 'VERSION_ID' inside 'os-release' with double quotes.
+*   Mon Feb 07 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-33
+-   Updating version for February update.
+*   Wed Jan 26 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-32
+-   Updating version for January update-2 (CVE-2022-0185 and CVE-2021-4034)
+*   Sat Jan 15 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-31
+-   Updating version for January update.
+*   Wed Jan 12 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.0-30
+-   Updating version for January update.
+*   Wed Dec 22 2021 Jon Slobodzian <joslobo@microsoft.com> - 1.0-29
+-   Updating version for December update.
+*   Thu Nov 25 2021 Jon Slobodzian <joslobo@microsoft.com> - 1.0-28
+-   Updating version for November update.
+*   Thu Nov 25 2021 Jon Slobodzian <joslobo@microsoft.com> - 1.0-27
+-   Updating kernel to revert EBPF for off-cycle update.
+*   Thu Nov 11 2021 Jon Slobodzian <joslobo@microsoft.com> - 1.0-27
+-   Updating version for off-cycle post-October update to fix kernel CVE
+*   Fri Nov 05 2021 Jon Slobodzian <joslobo@microsoft.com> - 1.0-26
+-   Updating version for off-cycle post-October update to fix vim CVE and update glibc to patch 
+-   dotnet/glibc garbage collector issue (pthread_cond_signal failed to wake up pthread_cond_wait)
+*   Wed Nov 03 2021 Jon Slobodzian <joslobo@microsoft.com> - 1.0-25
+-   Updating version for off-cycle post-October update to service toolchain CVE's and miscellaneous bug fixes.
+*   Tue Oct 26 2021 Jon Slobodzian <joslobo@microsoft.com> - 1.0-24
+-   Updating version for October update.
+*   Tue Sep 28 2021 Jon Slobodzian <joslobo@microsoft.com> - 1.0-23
+-   Updating version for September update.
+*   Mon Aug 30 2021 Mateusz Malisz <mamalisz@microsoft.com> - 1.0-22
+-   Updating version for August update.
+*   Thu Aug 19 2021 Jon Slobodzian <joslobo@microsoft.com> - 1.0-21
+-   Off-cycle update for Kernel CVE's
 *   Fri Jul 23 2021 Jon Slobodzian <joslobo@microsoft.com> - 1.0-20
 -   Updating version for July update
 *   Fri Jun 25 2021 Andrew Phelps <anphel@microsoft.com> - 1.0-19

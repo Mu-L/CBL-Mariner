@@ -4,7 +4,7 @@
 Summary:        Utilities from the general purpose cryptography library with TLS implementation
 Name:           openssl
 Version:        1.1.1k
-Release:        5%{?dist}
+Release:        16%{?dist}
 License:        OpenSSL
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
@@ -41,6 +41,21 @@ Patch18:        openssl-1.1.1-fips-curves.patch
 Patch19:        openssl-1.1.1-sp80056arev3.patch
 Patch20:        openssl-1.1.1-jitterentropy.patch
 Patch21:        openssl-1.1.1-drbg-seed.patch
+Patch22:        CVE-2021-3711.patch
+Patch23:        CVE-2021-3712.patch
+Patch24:        CVE-2021-4160.nopatch
+Patch25:        CVE-2022-0778.patch
+Patch26:        CVE-2022-1292.patch
+Patch27:        openssl-1.1.1-update-expired-cert.patch
+Patch28:        CVE-2022-2068.patch
+Patch29:        CVE-2023-0286.patch
+Patch30:        CVE-2022-4304.patch
+Patch31:        CVE-2022-4450.patch
+Patch32:        CVE-2023-0215.patch
+Patch33:        CVE-2023-0464.patch
+Patch34:        CVE-2023-0465.patch
+Patch35:        CVE-2023-0466.patch
+Patch36:        CVE-2023-2650.patch
 BuildRequires:  perl-Test-Warnings
 BuildRequires:  perl-Text-Template
 Requires:       %{name}-libs = %{version}-%{release}
@@ -128,6 +143,19 @@ cp %{SOURCE4} test/
 %patch19 -p1
 %patch20 -p1
 %patch21 -p1
+%patch22 -p1
+%patch23 -p1
+%patch25 -p1
+%patch26 -p1
+%patch27 -p1
+%patch28 -p1
+%patch29 -p1
+%patch30 -p1
+%patch31 -p1
+%patch32 -p1
+%patch33 -p1
+%patch34 -p1
+%patch35 -p1
 
 %build
 # Add -Wa,--noexecstack here so that libcrypto's assembler modules will be
@@ -190,8 +218,6 @@ export HASHBANGPERL=%{_bindir}/perl
     no-sm4 \
     no-ssl \
     no-ssl3 \
-    no-tls1 \
-    no-tls1_1 \
     no-weak-ssl-ciphers \
     no-whirlpool \
     no-zlib \
@@ -223,7 +249,6 @@ done
 make test
 
 %install
-[ %{buildroot} != "/" ] && rm -rf %{buildroot}/*
 install -d %{buildroot}{%{_bindir},%{_includedir},%{_libdir},%{_mandir},%{_libdir}/openssl,%{_pkgdocdir}}
 make DESTDIR=%{buildroot} MANDIR=%{_mandir} MANSUFFIX=ssl install
 rename so.%{soversion} so.%{version} %{buildroot}%{_libdir}/*.so.%{soversion}
@@ -240,16 +265,7 @@ mv %{buildroot}%{_sysconfdir}/pki/tls/misc/tsget %{buildroot}%{_bindir}
 
 # Rename man pages so that they don't conflict with other system man pages.
 pushd %{buildroot}%{_mandir}
-ln -s -f config.5 man5/openssl.cnf.5
-for manpage in man*/* ; do
-	if [ -L ${manpage} ]; then
-		TARGET=`ls -l ${manpage} | awk '{ print $NF }'`
-		ln -snf ${TARGET}ssl ${manpage}ssl
-		rm -f ${manpage}
-	else
-		mv ${manpage} ${manpage}ssl
-	fi
-done
+ln -s -f config.5ssl man5/openssl.cnf.5ssl
 for conflict in passwd rand ; do
 	rename ${conflict} ssl${conflict} man*/${conflict}*
 # Fix dangling symlinks
@@ -318,11 +334,44 @@ rm -f %{buildroot}%{_sysconfdir}/pki/tls/ct_log_list.cnf.dist
 %post   libs -p /sbin/ldconfig
 %postun libs -p /sbin/ldconfig
 
-%clean
-rm -rf %{buildroot}
-
-
 %changelog
+* Tue Jun 06 2023 Daniel McIlvaney <damcilva@microsoft.com> -  1.1.1k-16
+- Patch CVE-2023-2650
+
+* Wed Apr 12 2023 Rohit Rawat <rohitrawat@microsoft.com> - 1.1.1k-15
+- Patch CVE-2023-0465 and CVE-2023-0466
+
+* Fri Mar 31 2023 Osama Esmail <osamaesmail@microsoft.com> - 1.1.1k-14
+- Adding patch for CVE-2023-0464
+- 2 of the 3 patches for the CVE were for later versions
+
+* Tue Feb 07 2023 Olivia Crain <oliviacrain@microsoft.com> - 1.1.1k-13
+- Add upstream patches for CVE-2022-4304, CVE-2022-4450, CVE-2023-0215, CVE-2024-0286
+
+* Wed Jun 22 2022 Jon Slobodzian <joslobo@microsoft.com> - 1.1.1k-12
+- Patch for CVE-2022-2068
+
+* Tue Jun 14 2022 Henry Li <lihl@microsoft.com> - 1.1.1k-11
+- Add patch to fix package test failure caused by expired cert
+
+* Thu May 12 2022 Henry Li <lihl@microsoft.com> - 1.1.1k-10
+- Patch CVE-2022-1292
+
+* Thu Mar 10 2022 Pawel Winogrodzki <pawelwi@microsoft.com> - 1.1.1k-9
+- Adding patch for CVE-2022-0778.
+
+* Mon Aug 30 2021 Thomas Crain <thcrain@microsoft.com> - 1.1.1k-8
+- Fix dangling symlinks in man page packaging
+- Fix duplicate ssl suffixes in man pages
+- Remove redundant %%clean section
+- Remove redundant buildroot cleaning in %%install section
+
+* Tue Aug 24 2021 Nicolas Ontiveros <niontive@microsoft.com> - 1.1.1k-7
+- Patch CVE-2021-3711 and CVE-2021-3712.
+
+* Wed Jul 28 2021 Daniel Mihai <dmihai@microsoft.com> - 1.1.1k-6
+- Enable support for TLS 1 and TLS 1.1
+
 * Thu Jul 22 2021 Nicolas Ontiveros <niontive@microsoft.com> - 1.1.1k-5
 - In FIPS mode, perform Linux RNG concatenation even if adin/pers functions
 - aren't defined in given DRBG

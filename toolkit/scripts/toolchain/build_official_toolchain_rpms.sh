@@ -194,6 +194,8 @@ echo Setting up initial chroot to build pass1 toolchain RPMs from SPECs
 # Configure rpm macros
 mkdir -pv $LFS/usr/etc/rpm
 cp -v $SPECROOT/mariner-rpm-macros/macros $LFS/usr/etc/rpm/macros
+mkdir -pv $LFS/usr/lib/rpm/mariner
+cp -v $SPECROOT/mariner-rpm-macros/gen-ld-script.sh $LFS/usr/lib/rpm/mariner/gen-ld-script.sh
 cp -v $SPECROOT/rpm/brp* $LFS/usr/lib/rpm
 mkdir -pv $LFS/usr/lib/rpm/macros.d
 cp -v $MARINER_TOOLCHAIN_MANIFESTS_DIR/macros.override $LFS/usr/lib/rpm/macros.d/macros.override
@@ -298,7 +300,7 @@ case $(uname -m) in
     ;;
     aarch64)
         echo $($LFS/usr/lib/jvm/OpenJDK-1.8.0.181-bootstrap/bin/java -version)
-        build_rpm_in_chroot_no_install openjdk8_aarch64
+        build_rpm_in_chroot_no_install openjdk8
     ;;
 esac
 
@@ -340,7 +342,6 @@ build_rpm_in_chroot_no_install e2fsprogs
 # libgcrypt needs libgpg-error
 chroot_and_install_rpms libgpg-error
 build_rpm_in_chroot_no_install libgcrypt
-build_rpm_in_chroot_no_install kbd
 
 # krb5 needs e2fsprogs
 chroot_and_install_rpms e2fsprogs
@@ -349,18 +350,21 @@ build_rpm_in_chroot_no_install krb5
 # curl needs libssh2
 chroot_and_install_rpms libssh2
 build_rpm_in_chroot_no_install curl
+
+# libxml2 needs python-xml
+# python-xml is built by building python2
+chroot_and_install_rpms python-xml
 build_rpm_in_chroot_no_install libxml2
 
 # python-setuptools needs python-xml
-# python-xml is built by building python2
-chroot_and_install_rpms python-xml
-
 # cracklib needs python-setuptools
 chroot_and_install_rpms python-setuptools
 build_rpm_in_chroot_no_install cracklib
 
 # pam needs cracklib
+# cmake needs curl
 chroot_and_install_rpms cracklib
+chroot_and_install_rpms curl
 
 build_rpm_in_chroot_no_install cmake
 build_rpm_in_chroot_no_install pam
@@ -374,6 +378,9 @@ build_rpm_in_chroot_no_install libxslt
 # docbook-style-xsl needs pam
 chroot_and_install_rpms pam
 build_rpm_in_chroot_no_install docbook-style-xsl
+
+# kbd needs pam
+build_rpm_in_chroot_no_install kbd
 
 # gtest needs cmake
 chroot_and_install_rpms cmake
@@ -407,7 +414,6 @@ build_rpm_in_chroot_no_install gpgme
 
 # tdnf needs python3, gpgme, curl and libsolv
 chroot_and_install_rpms libsolv
-chroot_and_install_rpms curl
 
 chroot_and_install_rpms gpgme
 build_rpm_in_chroot_no_install pinentry
@@ -492,7 +498,7 @@ chroot_and_install_rpms gperf
 chroot_and_install_rpms cryptsetup
 build_rpm_in_chroot_no_install systemd
 
-build_rpm_in_chroot_no_install golang-1.15
+build_rpm_in_chroot_no_install golang
 build_rpm_in_chroot_no_install groff
 
 # libtiprc needs krb5
@@ -505,12 +511,8 @@ chroot_and_install_rpms libtirpc
 chroot_and_install_rpms rpcsvc-proto
 build_rpm_in_chroot_no_install libnsl2
 
-build_rpm_in_chroot_no_install finger
-
 # tcp_wrappers needs libnsl2, finger
 chroot_and_install_rpms libnsl2
-chroot_and_install_rpms finger
-build_rpm_in_chroot_no_install tcp_wrappers
 
 build_rpm_in_chroot_no_install cyrus-sasl
 
@@ -525,7 +527,6 @@ build_rpm_in_chroot_no_install libcap-ng
 chroot_and_install_rpms systemd
 chroot_and_install_rpms golang
 chroot_and_install_rpms openldap
-chroot_and_install_rpms tcp_wrappers
 chroot_and_install_rpms libcap-ng
 build_rpm_in_chroot_no_install audit
 

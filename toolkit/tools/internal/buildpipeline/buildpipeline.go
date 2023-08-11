@@ -32,8 +32,8 @@ func IsRegularBuild() bool {
 }
 
 // GetChrootDir returns the chroot folder
-// - proposeDir is suggested folder name
-//   in case of Docker based build a chroot dir is selected from the chroot pool and proposeDir is ignored
+//   - proposeDir is suggested folder name
+//     in case of Docker based build a chroot dir is selected from the chroot pool and proposeDir is ignored
 func GetChrootDir(proposedDir string) (chrootDir string, err error) {
 	if IsRegularBuild() {
 		// don't change proposed dir in case of regular build
@@ -179,30 +179,41 @@ func GetRpmsDir(chrootDir string, proposedDir string) string {
 	return filepath.Join(chrootDir, "localrpms")
 }
 
-// CleanupDockerChroot: Docker based only, clean chroot => delete everything but the folders listed
+// CleanupDockerChroot: Docker based only, clean chroot =>
+//  1. delete everything but the folders listed
+//     these folders are the ones mounted in docker run command (-v option)
+//  2. create empty folders
+//     these folders are required by chroot (e.g.: /run) and needs to be created empty
+//     to not inherit anything from previous build
 func CleanupDockerChroot(chroot string) (err error) {
 	var folderToKeep = []string{
 		"dev",
 		"proc",
-		"run",
 		"localrpms",
+		// toolchainrpms is not used by Mariner 1.0 builds, but is still mounted in our chroots
+		// and we should not attempt to delete it.
+		"toolchainrpms",
 		"upstream-cached-rpms",
 		"sys",
 		chrootUse,
+	}
+
+	var folderToCreate = []string{
+		"run",
 	}
 
 	logger.Log.Debugf("cleanup Chroot -> %s", chroot)
 
 	rootFolder, err := os.Open(chroot)
 	if err != nil {
-		logger.Log.Warnf("Open chroot %s failed - %v", chroot, err)
+		logger.Log.Warnf("Open chroot %s failed - %s", chroot, err)
 		return err
 	}
 
 	defer rootFolder.Close()
 	names, err := rootFolder.Readdirnames(-1)
 	if err != nil {
-		logger.Log.Warnf("Reading files and folders under chroot %s failed - %v", chroot, err)
+		logger.Log.Warnf("Reading files and folders under chroot %s failed - %s", chroot, err)
 		return err
 	}
 
@@ -217,8 +228,16 @@ func CleanupDockerChroot(chroot string) (err error) {
 		if toDelete {
 			err = os.RemoveAll(filepath.Join(chroot, name))
 			if err != nil {
-				logger.Log.Warnf("Removing files in chroot %s failed: %v", chroot, err)
+				logger.Log.Warnf("Removing files in chroot %s failed: %s", chroot, err)
 			}
+		}
+	}
+
+	// create some folder(s) once chroot has been cleaned up
+	for _, folder := range folderToCreate {
+		err = os.Mkdir(filepath.Join(chroot, folder), os.ModePerm)
+		if err != nil {
+			logger.Log.Warnf("Creation of %s folder in chroot %s failed: %s", folder, chroot, err)
 		}
 	}
 

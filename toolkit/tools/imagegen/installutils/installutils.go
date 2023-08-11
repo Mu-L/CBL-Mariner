@@ -37,6 +37,9 @@ const (
 	// rpmDependenciesDirectory is the directory which contains RPM database. It is not required for images that do not contain RPM.
 	rpmDependenciesDirectory = "/var/lib/rpm"
 
+	// rpmManifestDirectory is the directory containing manifests of installed packages to support distroless vulnerability scanning tools.
+	rpmManifestDirectory = "/var/lib/rpmmanifest"
+
 	// /boot directory should be only accesible by root. The directories need the execute bit as well.
 	bootDirectoryFileMode = 0600
 	bootDirectoryDirMode  = 0700
@@ -288,7 +291,9 @@ func umount(path string) (err error) {
 // PackageNamesFromSingleSystemConfig goes through the packageslist field in the systemconfig and extracts the list of packages
 // from each of the packagelists.
 // NOTE: the package list contains the versions restrictions for the packages, if present, in the form "[package][condition][version]".
-//       Example: gcc=9.1.0
+//
+//	Example: gcc=9.1.0
+//
 // - systemConfig is the systemconfig field from the config file
 // Since kernel is not part of the packagelist, it is added separately from KernelOptions.
 func PackageNamesFromSingleSystemConfig(systemConfig configuration.SystemConfig) (finalPkgList []string, err error) {
@@ -487,8 +492,29 @@ func PopulateInstallRoot(installChroot *safechroot.Chroot, packagesToInstall []s
 		}
 	}
 
+	if config.RemoveRpmDb {
+		// When the RemoveRpmDb flag is true, generate a list of installed packages since they cannot be queiried at runtime
+		logger.Log.Info("Generating manifest with package information since RemoveRpmDb is enabled.")
+		generateContainerManifests(installChroot)
+	}
+
 	// Run post-install scripts from within the installroot chroot
 	err = runPostInstallScripts(installChroot, config)
+	return
+}
+
+func generateContainerManifests(installChroot *safechroot.Chroot) {
+	installRoot := filepath.Join(rootMountPoint, installChroot.RootDir())
+	rpmDir := filepath.Join(installRoot, rpmDependenciesDirectory)
+	rpmManifestDir := filepath.Join(installRoot, rpmManifestDirectory)
+	manifest1Path := filepath.Join(rpmManifestDir, "container-manifest-1")
+	manifest2Path := filepath.Join(rpmManifestDir, "container-manifest-2")
+
+	os.MkdirAll(rpmManifestDir, os.ModePerm)
+
+	shell.ExecuteAndLogToFile(manifest1Path, "rpm", "--dbpath", rpmDir, "-qa")
+	shell.ExecuteAndLogToFile(manifest2Path, "rpm", "--dbpath", rpmDir, "-qa", "--qf", "%{NAME}\t%{VERSION}-%{RELEASE}\t%{INSTALLTIME}\t%{BUILDTIME}\t%{VENDOR}\t(none)\t%{SIZE}\t%{ARCH}\t%{EPOCHNUM}\t%{SOURCERPM}\n")
+
 	return
 }
 
@@ -960,6 +986,12 @@ func InstallGrubCfg(installRoot, rootDevice, bootUUID, bootPrefix string, encryp
 		return
 	}
 
+	err = setGrubCfgSELinux(installGrubCfgFile, kernelCommandLine)
+	if err != nil {
+		logger.Log.Warnf("Failed to set SELinux in grub.cfg: %v", err)
+		return
+	}
+
 	// Append any additional command line parameters
 	err = setGrubCfgAdditionalCmdLine(installGrubCfgFile, kernelCommandLine)
 	if err != nil {
@@ -1332,9 +1364,16 @@ func provisionUserSSHCerts(installChroot *safechroot.Chroot, user configuration.
 	const squashErrors = false
 	const authorizedKeysTempFilePerms = 0644
 	const authorizedKeysTempFile = "/tmp/authorized_keys"
+	const sshDirectoryPermission = "0700"
+
+	// Skip user SSH directory generation when not provided with public keys
+	// Let SSH handle the creation of this folder on its first use
+	if len(user.SSHPubKeyPaths) == 0 {
+		return
+	}
 
 	userSSHKeyDir := filepath.Join(homeDir, ".ssh")
-	authorizedKeysFile := filepath.Join(homeDir, ".ssh/authorized_keys")
+	authorizedKeysFile := filepath.Join(userSSHKeyDir, "authorized_keys")
 
 	exists, err = file.PathExists(authorizedKeysTempFile)
 	if err != nil {
@@ -1399,34 +1438,30 @@ func provisionUserSSHCerts(installChroot *safechroot.Chroot, user configuration.
 		return
 	}
 
-	if len(user.SSHPubKeyPaths) != 0 {
-		const sshDirectoryPermission = "0700"
-
-		// Change ownership of the folder to belong to the user and their primary group
-		err = installChroot.UnsafeRun(func() (err error) {
-			// Find the primary group of the user
-			stdout, stderr, err := shell.Execute("id", "-g", user.Name)
-			if err != nil {
-				logger.Log.Warnf(stderr)
-				return
-			}
-
-			primaryGroup := strings.TrimSpace(stdout)
-			logger.Log.Debugf("Primary group for user (%s) is (%s)", user.Name, primaryGroup)
-
-			ownership := fmt.Sprintf("%s:%s", user.Name, primaryGroup)
-			err = shell.ExecuteLive(squashErrors, "chown", "-R", ownership, userSSHKeyDir)
-			if err != nil {
-				return
-			}
-
-			err = shell.ExecuteLive(squashErrors, "chmod", "-R", sshDirectoryPermission, userSSHKeyDir)
+	// Change ownership of the folder to belong to the user and their primary group
+	err = installChroot.UnsafeRun(func() (err error) {
+		// Find the primary group of the user
+		stdout, stderr, err := shell.Execute("id", "-g", user.Name)
+		if err != nil {
+			logger.Log.Warnf(stderr)
 			return
-		})
+		}
 
+		primaryGroup := strings.TrimSpace(stdout)
+		logger.Log.Debugf("Primary group for user (%s) is (%s)", user.Name, primaryGroup)
+
+		ownership := fmt.Sprintf("%s:%s", user.Name, primaryGroup)
+		err = shell.ExecuteLive(squashErrors, "chown", "-R", ownership, userSSHKeyDir)
 		if err != nil {
 			return
 		}
+
+		err = shell.ExecuteLive(squashErrors, "chmod", "-R", sshDirectoryPermission, userSSHKeyDir)
+		return
+	})
+
+	if err != nil {
+		return
 	}
 
 	return
@@ -1443,6 +1478,104 @@ func updateUserPassword(installRoot, username, password string) (err error) {
 		logger.Log.Warnf("Failed to write hashed password to shadow file")
 		return
 	}
+	return
+}
+
+// SELinuxConfigure pre-configures SELinux file labels and configuration files
+func SELinuxConfigure(systemConfig configuration.SystemConfig, installChroot *safechroot.Chroot, mountPointToFsTypeMap map[string]string) (err error) {
+	logger.Log.Infof("Preconfiguring SELinux policy in %s mode", systemConfig.KernelCommandLine.SELinux)
+
+	err = selinuxUpdateConfig(systemConfig, installChroot)
+	if err != nil {
+		logger.Log.Errorf("Failed to update SELinux config")
+		return
+	}
+	err = selinuxRelabelFiles(systemConfig, installChroot, mountPointToFsTypeMap)
+	if err != nil {
+		logger.Log.Errorf("Failed to label SELinux files")
+		return
+	}
+	return
+}
+
+func selinuxUpdateConfig(systemConfig configuration.SystemConfig, installChroot *safechroot.Chroot) (err error) {
+	const (
+		configFile     = "etc/selinux/config"
+		selinuxPattern = "^SELINUX=.*"
+	)
+	var mode string
+
+	switch systemConfig.KernelCommandLine.SELinux {
+	case configuration.SELinuxEnforcing, configuration.SELinuxForceEnforcing:
+		mode = configuration.SELinuxEnforcing.String()
+	case configuration.SELinuxPermissive:
+		mode = configuration.SELinuxPermissive.String()
+	}
+
+	selinuxConfigPath := filepath.Join(installChroot.RootDir(), configFile)
+	selinuxMode := fmt.Sprintf("SELINUX=%s", mode)
+	err = sed(selinuxPattern, selinuxMode, "`", selinuxConfigPath)
+	return
+}
+
+func selinuxRelabelFiles(systemConfig configuration.SystemConfig, installChroot *safechroot.Chroot, mountPointToFsTypeMap map[string]string) (err error) {
+	const (
+		squashErrors        = false
+		configFile          = "etc/selinux/config"
+		fileContextBasePath = "etc/selinux/%s/contexts/files/file_contexts"
+	)
+	var listOfMountsToLabel []string
+
+	// Search through all our mount points for supported filesystem types
+	// Note for the future: SELinux can support any of {btrfs, encfs, ext2-4, f2fs, jffs2, jfs, ubifs, xfs, zfs}, but the build system currently
+	//     only supports the below cases:
+	for mount, fsType := range mountPointToFsTypeMap {
+		switch fsType {
+		case "ext2", "ext3", "ext4":
+			listOfMountsToLabel = append(listOfMountsToLabel, mount)
+		case "fat32", "fat16", "vfat":
+			logger.Log.Debugf("SELinux will not label mount at (%s) of type (%s), skipping", mount, fsType)
+		default:
+			err = fmt.Errorf("Unknown fsType (%s) for mount (%s), cannot configure SELinux", fsType, mount)
+			return
+		}
+	}
+
+	// Find the type of policy we want to label with
+	selinuxConfigPath := filepath.Join(installChroot.RootDir(), configFile)
+	stdout, stderr, err := shell.Execute("sed", "-n", "s/^SELINUXTYPE=\\(.*\\)$/\\1/p", selinuxConfigPath)
+	if err != nil {
+		logger.Log.Errorf("Could not find an SELINUXTYPE in %s", selinuxConfigPath)
+		logger.Log.Error(stderr)
+		return
+	}
+	selinuxType := strings.TrimSpace(stdout)
+	fileContextPath := fmt.Sprintf(fileContextBasePath, selinuxType)
+
+	logger.Log.Debugf("Running setfiles to apply SELinux labels on mount points: %v", listOfMountsToLabel)
+	err = installChroot.UnsafeRun(func() error {
+		args := []string{"-m", "-v", fileContextPath}
+		args = append(args, listOfMountsToLabel...)
+
+		// We only want to print basic info, filter out the real output unless at trace level (Execute call handles that)
+		files := 0
+		lastFile := ""
+		onStdout := func(args ...interface{}) {
+			if len(args) > 0 {
+				files++
+				lastFile = fmt.Sprintf("%v", args)
+			}
+			if (files % 1000) == 0 {
+				ReportActionf("SELinux: labelled %d files", files)
+			}
+		}
+		err := shell.ExecuteLiveWithCallback(onStdout, logger.Log.Warn, squashErrors, "setfiles", args...)
+		if err != nil {
+			return fmt.Errorf("failed while labeling files (last file: %s) %w", lastFile, err)
+		}
+		return err
+	})
+
 	return
 }
 
@@ -1682,7 +1815,7 @@ func runPostInstallScripts(installChroot *safechroot.Chroot, config configuratio
 		ReportActionf("Running post-install script: %s", path.Base(script.Path))
 		logger.Log.Infof("Running post-install script: %s", script.Path)
 		err = installChroot.UnsafeRun(func() error {
-			err := shell.ExecuteLive(squashErrors, shell.ShellProgram, "-c", scriptPath, script.Args)
+			err := shell.ExecuteLive(squashErrors, shell.ShellProgram, "-c", fmt.Sprintf("%s %s", scriptPath, script.Args))
 
 			if err != nil {
 				return err
@@ -1734,6 +1867,32 @@ func setGrubCfgIMA(grubPath string, kernelCommandline configuration.KernelComman
 	err = sed(imaPattern, ima, kernelCommandline.GetSedDelimeter(), grubPath)
 	if err != nil {
 		logger.Log.Warnf("Failed to set grub.cfg's IMA setting: %v", err)
+	}
+
+	return
+}
+
+func setGrubCfgSELinux(grubPath string, kernelCommandline configuration.KernelCommandLine) (err error) {
+	const (
+		selinuxPattern        = "{{.SELinux}}"
+		selinuxSettings       = "security=selinux selinux=1"
+		selinuxForceEnforcing = "enforcing=1"
+	)
+	var selinux string
+
+	switch kernelCommandline.SELinux {
+	case configuration.SELinuxForceEnforcing:
+		selinux = fmt.Sprintf("%s %s", selinuxSettings, selinuxForceEnforcing)
+	case configuration.SELinuxPermissive, configuration.SELinuxEnforcing:
+		selinux = selinuxSettings
+	case configuration.SELinuxOff:
+		selinux = ""
+	}
+
+	logger.Log.Debugf("Adding SELinuxConfiguration('%s') to '%s'", selinux, grubPath)
+	err = sed(selinuxPattern, selinux, kernelCommandline.GetSedDelimeter(), grubPath)
+	if err != nil {
+		logger.Log.Warnf("Failed to set grub.cfg's SELinux setting: %v", err)
 	}
 
 	return
@@ -2047,7 +2206,7 @@ func isRunningInHyperV() (isHyperV bool, err error) {
 	return
 }
 
-//KernelPackages returns a list of kernel packages obtained from KernelOptions in the config's SystemConfigs
+// KernelPackages returns a list of kernel packages obtained from KernelOptions in the config's SystemConfigs
 func KernelPackages(config configuration.Config) []*pkgjson.PackageVer {
 	var packageList []*pkgjson.PackageVer
 	// Add all the provided kernels to the package list
@@ -2074,7 +2233,7 @@ func stopGPGAgent(installChroot *safechroot.Chroot) {
 	installChroot.UnsafeRun(func() error {
 		err := shell.ExecuteLiveWithCallback(logger.Log.Debug, logger.Log.Warn, false, "gpgconf", "--kill", "gpg-agent")
 		if err != nil {
-			// This is non-fatal, as there is no guarentee the image has gpg agent started.
+			// This is non-fatal, as there is no guarantee the image has gpg agent started.
 			logger.Log.Warnf("Failed to stop gpg-agent. This is expected if it is not installed: %s", err)
 		}
 

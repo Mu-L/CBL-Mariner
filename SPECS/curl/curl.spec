@@ -1,20 +1,15 @@
 Summary:        An URL retrieval utility and library
 Name:           curl
-Version:        7.76.0
-Release:        5%{?dist}
+# Heads up: 7.87 breaks perl-WWW-Curl (see #4588).
+Version:        7.88.1
+Release:        2%{?dist}
 License:        MIT
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
 Group:          System Environment/NetworkingLibraries
 URL:            https://curl.haxx.se
 Source0:        https://curl.haxx.se/download/%{name}-%{version}.tar.gz
-Patch0:         CVE-2021-22898.patch
-Patch1:         CVE-2021-22901.patch
-Patch2:         CVE-2021-22897.patch
-Patch3:         CVE-2021-22922.nopatch
-Patch4:         CVE-2021-22923.nopatch
-Patch5:         CVE-2021-22924.patch
-Patch6:         CVE-2021-22925.patch
+Patch0:         CVE-2023-28322.patch
 BuildRequires:  krb5-devel
 BuildRequires:  libssh2-devel
 BuildRequires:  openssl-devel
@@ -34,6 +29,7 @@ functions like streaming media.
 %package devel
 Summary:        Libraries and header files for curl
 Requires:       %{name} = %{version}-%{release}
+Provides:       libcurl-devel = %{version}-%{release}
 
 %description devel
 Static libraries and header files for the support library for curl
@@ -41,6 +37,7 @@ Static libraries and header files for the support library for curl
 %package libs
 Summary:        Libraries for curl
 Group:          System Environment/Libraries
+Provides:       libcurl = %{version}-%{release}
 
 %description libs
 This package contains minimal set of shared curl libraries.
@@ -63,11 +60,10 @@ This package contains minimal set of shared curl libraries.
     --with-libssh2 \
     --with-ca-bundle=%{_sysconfdir}/pki/tls/certs/ca-bundle.trust.crt \
     --with-ca-path=%{_sysconfdir}/ssl/certs
-make %{?_smp_mflags}
+%make_build
 
 %install
-[ %{buildroot} != "/"] && rm -rf %{buildroot}/*
-make DESTDIR=%{buildroot} install
+%make_install
 install -v -d -m755 %{buildroot}/%{_docdir}/%{name}-%{version}
 find %{buildroot} -type f -name "*.la" -delete -print
 %{_fixperms} %{buildroot}/*
@@ -75,13 +71,8 @@ find %{buildroot} -type f -name "*.la" -delete -print
 %post   -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
 
-%clean
-rm -rf %{buildroot}/*
-
-
 %files
 %defattr(-,root,root)
-%license COPYING
 %{_bindir}/*
 %{_mandir}/man1/*
 
@@ -95,9 +86,44 @@ rm -rf %{buildroot}/*
 %{_docdir}/%{name}-%{version}
 
 %files libs
-%{_libdir}/libcurl.so.*
+%license COPYING
+%{_libdir}/libcurl.so.4*
 
 %changelog
+* Wed Jun 07 2023 Sumedh Sharma <sumsharma@microsoft.com> - 7.88.1-2
+- Apply patch to fix CVE-2023-28322
+
+* Thu Mar 09 2023 Mykhailo Bykhovtsev <mbykhovtsev@microsoft.com> - 7.88.1-1
+- Upgrade to version 7.88.1 to fix CVE-2023-23914, CVE-2023-23915, CVE-2023-23916
+- Removing old patches that are fixed in version 7.87.0
+
+* Mon Feb 13 2023 Dallas Delaney <dadelan@microsoft.com> - 7.86.0-3
+- Apply patch to fix CVE-2022-43552
+
+* Thu Jan 12 2023 Aurélien Bombo <abombo@microsoft.com> - 7.86.0-2
+- Apply patch to fix CVE-2022-43551.
+
+* Tue Nov 08 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 7.86.0-1
+- Auto-upgrade to 7.86.0 - CVE-2022-42915
+
+* Tue Aug 09 2022 Pawel Winogrodzki <pawelwi@microsoft.com> - 7.84.0-1
+- Updating to version 7.84.0 to fix CVE-2022-32207.
+
+* Tue Apr 26 2022 Henry Beberman <henry.beberman@microsoft.com> - 7.76.0-9
+- Backport upstream patches for CVE-2022-22576, CVE-2022-27774, CVE-2022-27775, CVE-2022-27776
+
+* Thu Jan 20 2022 Cameron Baird <cameronbaird@microsoft.com> - 7.76.0-8
+- Bump release to build and republish with mariner-rpm-macros fix to filter out references to module_info.ld in pkgconfig files
+
+* Mon Nov 01 2021 Thomas Crain <thcrain@microsoft.com> - 7.76.0-7
+- Add nopatch for CVE-2021-22926
+- Switch to new upstream URL
+- Move license to libs subpackage
+- Lint spec
+
+* Wed Sep 15 2021 Henry Li <lihl@microsoft.com> - 7.76.0-6
+- Fix CVE-2021-22945, CVE-2021-22946, CVE-2021-22947
+
 * Wed Jul 21 2021 Chris Co <chrco@microsoft.com> - 7.76.0-5
 - Address CVE-2021-22922, CVE-2021-22923, CVE-2021-22924, CVE-2021-22925
 

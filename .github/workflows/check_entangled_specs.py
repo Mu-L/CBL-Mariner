@@ -19,6 +19,7 @@ version_release_matching_groups = [
     ]),
     frozenset([
         "SPECS/ca-certificates/ca-certificates.spec",
+        "SPECS/prebuilt-ca-certificates/prebuilt-ca-certificates.spec",
         "SPECS/prebuilt-ca-certificates-base/prebuilt-ca-certificates-base.spec"
     ])
 ]
@@ -28,10 +29,6 @@ version_matching_groups = [
         "SPECS/hyperv-daemons/hyperv-daemons.spec",
         "SPECS/kernel/kernel.spec",
         "SPECS/kernel-hyperv/kernel-hyperv.spec"
-    ]),
-    frozenset([
-        "SPECS/azure-iotedge/azure-iotedge.spec",
-        "SPECS/libiothsm-std/libiothsm-std.spec"
     ])
 ]
 

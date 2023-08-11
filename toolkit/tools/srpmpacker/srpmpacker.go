@@ -243,7 +243,6 @@ func calculateSPECsToRepack(specFiles []string, distTag, outDir string, nestedSo
 func specsToPackWorker(allSpecFiles chan string, specResults chan *specState, distTag, outDir string, nestedSourcesDir, repackAll bool) {
 	const (
 		queryFormat         = `%{NAME}-%{VERSION}-%{RELEASE}.src.rpm`
-		queryExclusiveArch  = "%{ARCH}\n%{EXCLUSIVEARCH}\n"
 		nestedSourceDirName = "SOURCES"
 	)
 
@@ -298,14 +297,14 @@ func specsToPackWorker(allSpecFiles chan string, specResults chan *specState, di
 		}
 
 		// Sanity check that SRPMS is meant to be built for the machine architecture
-		results, err := rpm.QuerySPEC(specFile, sourceDir, queryExclusiveArch, defines, rpm.QueryHeaderArgument)
+		matches, err := rpm.SpecExclusiveArchIsCompatible(specFile, sourceDir, defines)
 		if err != nil {
 			logger.Log.Panicf("Failed to query SPEC (%s), skipping", specFile)
 			specResults <- result
 			continue
 		}
 
-		if !specArchMatchesBuild(results) {
+		if !matches {
 			logger.Log.Debugf(`Skipping (%s) since it cannot be built on current architecture.`, specFile)
 			specResults <- result
 			continue
@@ -627,8 +626,8 @@ func hydrateFromLocalSource(fileHydrationState map[string]bool, newSourceDir str
 		}
 
 		if isHydrated {
-			logger.Log.Warnf("Duplicate matching file found at (%s), skipping", path)
-			return nil
+			err = fmt.Errorf("unable to process duplicate matching file (%s)", path)
+			return err
 		}
 
 		if !skipSignatureHandling {
@@ -760,27 +759,4 @@ func cleanupSRPMWorkingDir(workingDir string) {
 	if err != nil {
 		logger.Log.Warnf("Unable to cleanup working directory: %s", workingDir)
 	}
-}
-
-// specArchMatchesBuild verifies ExclusiveArch tag against the machine architecture.
-func specArchMatchesBuild(exclusiveArchList []string) (shouldBeBuilt bool) {
-	const (
-		MachineArchField   = iota
-		ExclusiveArchField = iota
-		MinimumFieldsCount = iota
-	)
-
-	shouldBeBuilt = true
-
-	if len(exclusiveArchList) < MinimumFieldsCount {
-		logger.Log.Panicf("The query for spec architecture did not return enough lines!")
-	}
-
-	if exclusiveArchList[ExclusiveArchField] != "(none)" &&
-		exclusiveArchList[ExclusiveArchField] != exclusiveArchList[MachineArchField] {
-		// "(none)" means no ExclusiveArch tag has been set.
-		shouldBeBuilt = false
-	}
-
-	return
 }

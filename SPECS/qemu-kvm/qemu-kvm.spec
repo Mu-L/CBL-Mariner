@@ -1,7 +1,7 @@
 Summary:        QEMU is a machine emulator and virtualizer
 Name:           qemu-kvm
 Version:        4.2.0
-Release:        34%{?dist}
+Release:        48%{?dist}
 License:        GPLv2 AND GPLv2+ AND CC-BY AND BSD
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
@@ -13,48 +13,88 @@ Source1:        65-kvm.rules
 Patch0:         CVE-2020-11102.patch
 # This vulnerability is in libslirp source code. And qemu is exposed to it when configured with libslirp.
 # Since Mariner does not have libslirp, it is not applicable.
-Patch1:         CVE-2020-7039.nopatch
-Patch2:         CVE-2020-1711.patch
-Patch3:         CVE-2020-7211.patch
-Patch4:         CVE-2019-20175.patch
-Patch5:         CVE-2020-13659.patch
-Patch6:         CVE-2020-16092.patch
-Patch7:         CVE-2020-15863.patch
-Patch8:         CVE-2020-10702.patch
-Patch9:         CVE-2020-10761.patch
+Patch1:         CVE-2020-1711.patch
+Patch2:         CVE-2020-7211.patch
+Patch3:         CVE-2019-20175.patch
+Patch4:         CVE-2020-13659.patch
+Patch5:         CVE-2020-16092.patch
+Patch6:         CVE-2020-15863.patch
+Patch7:         CVE-2020-10702.patch
+Patch8:         CVE-2020-10761.patch
 # CVE-2020-13253 backported to 4.2.0. Original version: https://github.com/qemu/qemu/commit/790762e5487114341cccc5bffcec4cb3c022c3cd
-Patch10:        CVE-2020-13253.patch
-Patch11:        CVE-2020-13754.patch
-Patch12:        CVE-2020-13800.patch
-Patch13:        CVE-2020-14364.patch
-Patch14:        CVE-2020-13791.patch
+Patch9:         CVE-2020-13253.patch
+Patch10:        CVE-2020-13754.patch
+Patch11:        CVE-2020-13800.patch
+Patch12:        CVE-2020-14364.patch
+Patch13:        CVE-2020-13791.patch
 # CVE-2018-19665 patch never merged upstream, link: https://lists.gnu.org/archive/html/qemu-devel/2018-11/msg03570.html
-Patch15:        CVE-2018-19665.patch
-Patch16:        CVE-2020-13361.patch
-Patch17:        CVE-2020-11869.patch
-Patch18:        CVE-2020-14415.patch
-Patch19:        CVE-2020-15859.patch
-Patch20:        CVE-2020-13362.patch
-Patch21:        CVE-2020-25742.patch
-Patch22:        CVE-2020-25743.patch
-Patch23:        CVE-2020-15469.patch
-Patch24:        CVE-2020-24352.patch
-# CVE-2020-12820 only affects powerpc and SuperH emulation (see .nopatch file for details). Resloved fully in qemu >=5.0.0
-Patch25:        CVE-2020-12829.nopatch
-Patch26:        CVE-2018-12617.patch
-Patch27:        CVE-2020-25723.patch
-Patch28:        CVE-2020-27821.patch
-Patch29:        CVE-2020-17380.patch
-Patch30:        CVE-2021-20203.patch
-Patch31:        CVE-2021-20255.patch
-Patch32:        CVE-2021-3416.patch
-Patch33:        CVE-2021-3392.patch
-Patch34:        CVE-2021-3409.patch
-Patch35:        CVE-2021-20181.patch
-Patch36:        CVE-2021-20221.patch
-Patch37:        CVE-2021-3527.patch
-Patch38:        CVE-2020-27661.nopatch
-Patch39:        CVE-2021-3546.patch
+Patch14:        CVE-2018-19665.patch
+Patch15:        CVE-2020-13361.patch
+Patch16:        CVE-2020-11869.patch
+Patch17:        CVE-2020-14415.patch
+Patch18:        CVE-2020-15859.patch
+Patch19:        CVE-2020-13362.patch
+Patch20:        CVE-2020-25742.patch
+Patch21:        CVE-2020-25743.patch
+Patch22:        CVE-2020-15469.patch
+Patch23:        CVE-2020-24352.patch
+Patch24:        CVE-2018-12617.patch
+Patch25:        CVE-2020-25723.patch
+Patch26:        CVE-2020-27821.patch
+Patch27:        CVE-2020-17380.patch
+Patch28:        CVE-2021-20203.patch
+Patch29:        CVE-2021-20255.patch
+Patch30:        CVE-2021-3416.patch
+Patch31:        CVE-2021-3392.patch
+Patch32:        CVE-2021-3409.patch
+Patch33:        CVE-2021-20181.patch
+Patch34:        CVE-2021-20221.patch
+Patch35:        CVE-2021-3527.patch
+Patch36:        CVE-2021-3546.patch
+Patch37:        CVE-2021-3682.patch
+Patch38:        CVE-2021-3713.patch
+Patch39:        CVE-2021-3545.patch
+Patch40:        CVE-2021-3930.patch
+Patch41:        CVE-2021-3607.patch
+Patch42:        CVE-2021-3608.patch
+Patch43:        CVE-2021-20257.patch
+Patch44:        CVE-2021-3748.patch
+Patch45:        CVE-2021-3638.patch
+Patch46:        CVE-2021-3750.patch
+Patch47:        CVE-2021-4206.patch
+Patch48:        0001-removed-tulip.c-from-build-process-due-to-CVE-2022-2962.patch
+# CVE-2022-3872 is fixed in 7.1.0 by https://lists.nongnu.org/archive/html/qemu-devel/2022-11/msg01068.html
+Patch49:        CVE-2022-3872.patch
+# CVE-2021-4207 is fixed in 7.0.0 by https://gitlab.com/qemu-project/qemu/-/commit/9569f5cb
+Patch50:        CVE-2021-4207.patch
+# Range 1001+ reserved for nopatch files
+Patch1001:      CVE-2020-7039.nopatch
+# CVE-2020-12829 affects the sm501 video driver, which is only used for powerpc and SuperH emulation
+# CONFIG_SM501 is selected by CONFIG_SAM460EX and CONFIG_R2D (from ppc-softmmu and sh4 targets respectively). We are not affected because we only build natively.
+# This is resolved in qemu >= 5.0
+Patch1002:      CVE-2020-12829.nopatch
+Patch1003:      CVE-2020-27661.nopatch
+# CVE 2020-35506 affects the SCSI ESP driver (esp.c), which is only compiled when CONFIG_ESP is set.
+# Our configuration does not enable CONFIG_ESP/compile esp.c, so Mariner is not vulnerable.
+Patch1004:      CVE-2020-35506.nopatch
+# CVE-2021-4145 is a NULL-pointer dereference of the `self` pointer in `mirror_wait_on_conflicts()`.
+# This function in v4.2.0 only checks the `self` pointer with another op, which will not cause a NULL-pointer dereference.
+# The Code path for CVE-2021-4145 does not occur in the current version (v4.2.0) shipped with `Mariner-1.0`.
+Patch1005:      CVE-2021-4145.nopatch
+# CVE-2021-3947 is a stack-buffer-overflow in the NVME component. The current version (v4.2.0) does not ship it.
+Patch1006:      CVE-2021-3947.nopatch
+# CVE-2022-1050 only affects installations of QEMU with RDMA support. We don't have that enabled.
+Patch1007:      CVE-2022-1050.nopatch
+# CVE-2021-20295 only affects RedHat's particular release of QEMU
+Patch1008:      CVE-2021-20295.nopatch
+Patch1009:      CVE-2022-35414.patch
+# CVE-2022-0358 is in the tools component.
+# Version (v4.2.0) does not ship tools component code.
+# CVE and provided patch not applicable hence adding nopatch.
+Patch1010:      CVE-2022-0358.nopatch
+# CVE and provided patch not applicable to v4.2.0 hence adding nopatch.
+Patch1011:      CVE-2022-26354.nopatch
+Patch1012:      CVE-2020-35505.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  glib-devel
@@ -81,44 +121,7 @@ Requires:       pixman
 This package provides a command line tool for manipulating disk images.
 
 %prep
-%setup -q -n qemu-%{version}
-%patch0 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
-%patch5 -p1
-%patch6 -p1
-%patch7 -p1
-%patch8 -p1
-%patch9 -p1
-%patch10 -p1
-%patch11 -p1
-%patch12 -p1
-%patch13 -p1
-%patch14 -p1
-%patch15 -p1
-%patch16 -p1
-%patch17 -p1
-%patch18 -p1
-%patch19 -p1
-%patch20 -p1
-%patch21 -p1
-%patch22 -p1
-%patch23 -p1
-%patch24 -p1
-%patch26 -p1
-%patch27 -p1
-%patch28 -p1
-%patch29 -p1
-%patch30 -p1
-%patch31 -p1
-%patch32 -p1
-%patch33 -p1
-%patch34 -p1
-%patch35 -p1
-%patch36 -p1
-%patch37 -p1
-%patch39 -p1
+%autosetup -n qemu-%{version} -p1
 
 # Remove invalid flag exposed by binutils 2.36.1
 sed -i "/LDFLAGS_NOPIE/d" configure
@@ -218,6 +221,56 @@ fi
 %{_bindir}/qemu-nbd
 
 %changelog
+* Thu Dec 22 2022 Amrita Kohli <amritakohli@microsoft.com> - 4.2.0-48
+- Patch CVE-2021-4207
+
+* Wed Dec 21 2022 Amrita Kohli <amritakohli@microsoft.com> - 4.2.0-47
+- Patch CVE-2022-3872
+
+* Tue Nov 15 2022 George Mileka <gmileka@microsoft.com> - 4.2.0-46
+- Patch CVE-2020-35505.
+
+* Tue Oct 18 2022 Neha Agarwal <nehaagarwal@microsoft.com> - 4.2.0-45
+- Nopatch CVE-2022-26354.
+
+* Thu Sep 29 2022 Aadhar Agarwal <aadagarwal@microsoft.com> - 4.2.0-44
+- Disable tulip device emulation from QEMU to address CVE-2022-2962
+- Nopatch CVE-2022-2962
+
+* Tue Sep 06 2022 Suresh Babu Chalamalasetty <schalam@microsoft.com> - 4.2.0-43
+- Nopatch CVE-2022-0358.
+
+* Wed Aug 24 2022 Nicolas Guibourge <nicolasg@microsoft.com> - 4.2.0-42
+- Patch CVE-2022-35414
+
+* Wed Jul 06 2022 Nick Samson <nisamson@microsoft.com> - 4.2.0-41
+- Patch CVE-2021-4206
+
+* Mon Jun 27 2022 Minghe Ren <mingheren@microsoft.com> - 4.2.0-40
+- Patch CVE-2021-3750 
+
+* Fri May 06 2022 Nick Samson <nisamson@microsoft.com> - 4.2.0-39
+- Patch CVE-2021-20257, CVE-2021-3638, CVE-2021-3748
+- Nopatch CVE-2022-1050, CVE-2021-20295
+
+* Wed Mar 16 2022 Muhammad Falak <mwani@microsoft.com> - 4.2.0-38
+- Patch CVE-2021-3607 & CVE-2021-3930
+- Backport patch to address CVE-2021-3608
+- Mark CVE-2021-3947 & CVE-2021-4145 as nopatch
+
+* Thu Nov 18 2021 Cameron Baird <cameronbaird@microsoft.com> - 4.2.0-37
+- Patched CVE-2021-3545
+- Marked CVE-2020-35506 as nopatch
+
+* Thu Sep 09 2021 Mateusz Malisz <mamalisz@microsoft.com> - 4.2.0-36
+- Patched CVE-2021-3713
+- Move nopatch files to 1001+ range.
+- Reenable autosetup
+- Move contents of CVE-2020-12829 to this spec and clear the nopatch file.
+
+* Mon Aug 16 2021 Pawel Winogrodzki <pawelwi@microsoft.com> - 4.2.0-35
+- Patched CVE-2021-3682.
+
 * Tue Jul 06 2021 Henry Li <lihl@microsoft.com> - 4.2.0-34
 - Patch CVE-2021-3546
 

@@ -1,24 +1,32 @@
 Summary:        MySQL.
 Name:           mysql
-Version:        8.0.24
+Version:        8.0.32
 Release:        1%{?dist}
 License:        GPLv2 with exceptions AND LGPLv2 AND BSD
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
 Group:          Applications/Databases
 URL:            https://www.mysql.com
+# Note that the community download page is here: https://dev.mysql.com/downloads/mysql/
 Source0:        https://dev.mysql.com/get/Downloads/MySQL-8.0/%{name}-boost-%{version}.tar.gz
 Patch0:         CVE-2012-5627.nopatch
 BuildRequires:  cmake
 BuildRequires:  libtirpc-devel
 BuildRequires:  openssl-devel
 BuildRequires:  rpcsvc-proto-devel
+BuildRequires:  tzdata
 BuildRequires:  zlib-devel
+%if %{with_check}
+BuildRequires:  net-tools
+BuildRequires:  sudo
+BuildRequires:  shadow-utils
+%endif
+Requires:       tzdata
 
 %description
 MySQL is a free, widely used SQL engine. It can be used as a fast database as well as a rock-solid DBMS using a modular engine architecture.
 
-%package devel
+%package        devel
 Summary:        Development headers for mysql
 Requires:       %{name} = %{version}-%{release}
 
@@ -29,9 +37,12 @@ Development headers for developing applications linking to maridb
 %autosetup -p1
 
 %build
+# Disabling flaky 'invalid_metadata' test.
+sed -i "s/\(invalid_metadata\)/DISABLED_\1/" router/tests/component/test_routing_splicer.cc
+
 cmake . \
       -DCMAKE_INSTALL_PREFIX=%{_prefix}   \
-      -DWITH_BOOST=boost/boost_1_73_0 \
+      -DWITH_BOOST=boost/boost_1_77_0 \
       -DINSTALL_MANDIR=share/man \
       -DINSTALL_DOCDIR=share/doc \
       -DINSTALL_DOCREADMEDIR=share/doc \
@@ -41,14 +52,16 @@ cmake . \
       -DCMAKE_CXX_FLAGS=-fPIC \
       -DWITH_EMBEDDED_SERVER=OFF \
       -DFORCE_INSOURCE_BUILD=1
-
-make %{?_smp_mflags}
+%make_build
 
 %install
-make DESTDIR=%{buildroot} install
+%make_install
 
 %check
-make test
+# Test suite has multiple failures when run as root
+chmod g+w . -R
+useradd test -G root -m
+sudo -u test %make_build CTEST_OUTPUT_ON_FAILURE=1 test
 
 %files
 %defattr(-,root,root)
@@ -74,8 +87,38 @@ make test
 %{_libdir}/*.a
 %{_includedir}/*
 %{_libdir}/pkgconfig/mysqlclient.pc
+%{_libdir}/private/icudt69l/brkitr/*.res
+%{_libdir}/private/icudt69l/brkitr/*.brk
+%{_libdir}/private/icudt69l/brkitr/*.dict
+%{_libdir}/private/icudt69l/unames.icu
 
 %changelog
+* Thu Mar 16 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 8.0.32-1
+- Auto-upgrade to 8.0.32 - fix CVE-2023-21875 to CVE-2023-21887
+
+* Tue Oct 25 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 8.0.31-1
+- Upgrade to 8.0.31
+
+* Fri Apr 29 2022 Suresh Babu Chalamalasetty <schalam@microsoft.com> - 8.0.29-1
+- Upgrade to v8.0.29 to fix 8 CVEs.
+
+* Wed Jan 26 2022 Neha Agarwal <pawelwi@microsoft.com> - 8.0.28-1
+- Upgrade to v8.0.28 to fix 16 CVEs.
+
+* Tue Jan 18 2022 Pawel Winogrodzki <pawelwi@microsoft.com> - 8.0.27-2
+- Disabled flaky 'invalid_metadata' test.
+
+* Sat Oct 30 2021 Jon Slobodzian <joslobo@microsoft.com> - 8.0.27-1
+- Upgrade to 8.0.27 to fix 36 CVEs
+
+* Mon Aug 30 2021 Thomas Crain <thcrain@microsoft.com> - 8.0.26-2
+- Fix majority of package test failures by adding necessary requirements and running tests as non-root
+- Add missing tzdata runtime requirement
+- Add better log outputs for failed %%check tests
+
+* Tue Jul 27 2021 Thomas Crain <thcrain@microsoft.com> - 8.0.26-1
+- Upgrade to 8.0.26 to fix 31 CVEs
+
 * Sat Apr 24 2021 Thomas Crain <thcrain@microsoft.com> - 8.0.24-1
 - Upgrade to 8.0.24 to fix 30 CVEs
 - Update source URL

@@ -1,20 +1,18 @@
 Summary:        The Apache HTTP Server
 Name:           httpd
-Version:        2.4.46
-Release:        5%{?dist}
-License:        ASL 2.0
+Version:        2.4.56
+Release:        1%{?dist}
+License:        Apache-2.0
 URL:            https://httpd.apache.org/
 Group:          Applications/System
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
 Source0:        https://archive.apache.org/dist/%{name}/%{name}-%{version}.tar.bz2
-Patch0:         httpd-blfs_layout-1.patch
+
+# Patch0 is taken from:
+# https://www.linuxfromscratch.org/patches/blfs/svn/httpd-2.4.56-blfs_layout-3.patch
+Patch0:         httpd-2.4.53-blfs_layout-3.patch
 Patch1:         httpd-uncomment-ServerName.patch
-Patch2:         CVE-2020-13950.patch
-Patch3:         CVE-2020-35452.patch
-Patch4:         CVE-2021-26690.patch
-Patch5:         CVE-2021-30641.patch
-Patch6:         CVE-2021-26691.patch
 
 # CVE-1999-0236 must be mitigated by the user. See "Server Side Includes" at https://httpd.apache.org/docs/2.4/misc/security_tips.html
 Patch100: CVE-1999-0236.nopatch
@@ -70,28 +68,28 @@ Summary: Tools for httpd
 The httpd-tools of httpd.
 
 %prep
-%setup -q
-%patch0 -p1
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
-%patch5 -p1
-%patch6 -p1
+%autosetup -p1
 
 %build
-%configure \
-            --prefix=%{_sysconfdir}/httpd          \
-            --exec-prefix=%{_prefix}               \
-            --sysconfdir=%{_confdir}/httpd/conf    \
-            --libexecdir=%{_libdir}/httpd/modules  \
-            --datadir=%{_sysconfdir}/httpd         \
-            --enable-authnz-fcgi                   \
-            --enable-mods-shared="all cgi"         \
-            --enable-mpms-shared=all               \
-            --with-apr=%{_prefix}                  \
-            --with-apr-util=%{_prefix}
-
+sh ./configure \
+            --host=%{_host}                          \
+            --build=%{_host}                         \
+            --prefix="%{_sysconfdir}/httpd"          \
+            --exec-prefix="%{_prefix}"               \
+            --libdir=%{_libdir}                      \
+            --bindir="%{_bindir}"                    \
+            --sbindir="%{_sbindir}"                  \
+            --sysconfdir="%{_confdir}/httpd/conf"    \
+            --libexecdir="%{_libdir}/httpd/modules"  \
+            --datadir="%{_sysconfdir}/httpd"         \
+            --includedir="%{_includedir}"            \
+            --mandir="%{_mandir}"                    \
+            --enable-authnz-fcgi                     \
+            --enable-mods-shared="all cgi"           \
+            --enable-mpms-shared=all                 \
+            --with-apr=%{_prefix}                    \
+            --with-apr-util=%{_prefix}               \
+            --enable-layout=RPM
 make %{?_smp_mflags}
 
 %install
@@ -122,6 +120,11 @@ echo "disable httpd.service" > %{buildroot}/usr/lib/systemd/system-preset/50-htt
 ln -s /usr/sbin/httpd %{buildroot}/usr/sbin/apache2
 ln -s /etc/httpd/conf/httpd.conf %{buildroot}/etc/httpd/httpd.conf
 
+mkdir -p %{buildroot}%{_libdir}/tmpfiles.d
+cat >> %{buildroot}%{_libdir}/tmpfiles.d/httpd.conf << EOF
+d /var/run/httpd 0755 root root -
+EOF
+
 %post
 /sbin/ldconfig
 if [ $1 -eq 1 ]; then
@@ -141,6 +144,7 @@ fi
 
 ln -sf /etc/httpd/conf/mime.types /etc/mime.types
 mkdir -p /var/run/httpd
+systemd-tmpfiles --create httpd.conf
 %systemd_post httpd.service
 
 %preun
@@ -180,7 +184,7 @@ fi
 %exclude %{_bindir}/dbmmanage
 %{_sbindir}/*
 %{_datadir}/*
-%{_sysconfdir}/httpd/build/*
+%{_sysconfdir}/httpd/html/index.html
 %{_sysconfdir}/httpd/cgi-bin/*
 %{_sysconfdir}/httpd/conf/extra
 %{_sysconfdir}/httpd/conf/original
@@ -189,12 +193,13 @@ fi
 %config(noreplace) %{_sysconfdir}/httpd/conf/httpd.conf
 %{_sysconfdir}/httpd/conf/mime.types
 %{_sysconfdir}/httpd/error/*
-%{_sysconfdir}/httpd/htdocs/*
 %{_sysconfdir}/httpd/icons/*
 %{_sysconfdir}/httpd/httpd.conf
 %dir %{_sysconfdir}/httpd/logs
 %{_libdir}/systemd/system/httpd.service
 %{_libdir}/systemd/system-preset/50-httpd.preset
+%{_libdir}/tmpfiles.d/httpd.conf
+%{_localstatedir}/log/httpd
 
 %files tools
 %defattr(-,root,root)
@@ -202,73 +207,125 @@ fi
 %{_bindir}/dbmmanage
 
 %changelog
-*   Thu Jun 24 2021 Suresh Babu Chalamalasetty <schalam@microsoft.com> 2.4.46-5
--   CVE-2021-26691 fix
+* Tue Mar 14 2023 Thien Trung Vuong <tvuong@microsoft.com> - 2.4.56-1
+- Upgrade to version 2.4.56 - Fixes CVE-2023-27522, CVE-2023-25690
 
-*   Tue Jun 22 2021 Suresh Babu Chalamalasetty <schalam@microsoft.com> 2.4.46-4
--   CVE-2020-13950 CVE-2021-26690 CVE-2021-30641 and CVE-2020-35452 fixes
+* Mon Feb 06 2023 Dan Streetman <ddstreet@microsoft.com> - 2.4.55-1
+- Upgrade to version 2.4.55 - Fixes CVE-2022-36760
 
-*   Tue Oct 06 2020 Pawel Winogrodzki <pawelwi@microsoft.com> 2.4.46-3
--   Mark CVE-2007-0086 as nopatch
-*   Mon Sep 28 2020 Daniel McIlvaney <damcilva@microsoft.com> 2.4.46-2
--   Mark CVE-1999-0236 CVE-1999-1412 as nopatch
-*   Tue Aug 18 2020 Pawel Winogrodzki <pawelwi@microsoft.com> 2.4.46-1
--   Updated to 2.4.46 to resolve CVE-2020-11984.
-*   Tue May 19 2020 Ruying Chen <v-ruyche@microsoft.com> 2.4.43-1
--   Updated to 2.4.43 to resolve the following CVEs
--   CVE-2019-10081, CVE-2019-10082, CVE-2019-10092, CVE-2019-10097
--   CVE-2019-10098, CVE-2020-1927, CVE-2020-1934
-*   Sat May 09 2020 Nick Samson <nisamson@microsoft.com> 2.4.39-4
--   Added %%license line automatically
-*   Tue Apr 07 2020 Pawel Winogrodzki <pawelwi@microsoft.com> 2.4.39-3
--   Updated and verified 'Source0', 'Patch0' and 'URL' tags.
--   License verified.
--   Removed '%%define sha1' line.
-*   Tue Sep 03 2019 Mateusz Malisz <mamalisz@microsoft.com> 2.4.39-2
--   Initial CBL-Mariner import from Photon (license: Apache2).
-*   Tue Apr 16 2019 Dweep Advani <dadvani@vmware.com> 2.4.39-1
--   Upgrading to 2.4.39 for fixing multiple CVEs
--   (1) CVE-2018-17189 (2) CVE-2018-17199 (3) CVE-2019-0190
--   (4) CVE-2019-0211 (5) CVE-2019-0215 (6) CVE-2019-0217
-*   Thu Jan 24 2019 Dweep Advani <dadvani@vmware.com> 2.4.34-2
--   Fixed CVE-2018-11763
-*   Wed Aug 29 2018 Tapas Kundu <tkundu@vmware.com> 2.4.34-1
--   Updated to version 2.4.34, fix CVE-2018-1333
-*   Mon Oct 02 2017 Xiaolin Li <xiaolinl@vmware.com> 2.4.28-1
--   Updated to version 2.4.28
-*   Mon Sep 18 2017 Alexey Makhalov <amakhalov@vmware.com> 2.4.27-3
--   Remove shadow from requires and use explicit tools for post actions
-*   Mon Aug 07 2017 Anish Swaminathan <anishs@vmware.com>  2.4.27-2
--   Add shadow to requires for useradd/groupadd
-*   Mon Jul 24 2017 Anish Swaminathan <anishs@vmware.com>  2.4.27-1
--   Updated to version 2.4.27 - Fixes CVE-2017-3167
-*   Wed May 31 2017 Harish Udaiya Kumar <hudaiyakumar@vmware.com> 2.4.25-3
--   Provide preset file to disable service by default.
-*   Fri Mar 31 2017 Dheeraj Shetty <dheerajs@vmware.com> 2.4.25-2
--   Fixing httpd.pid file write issue
-*   Fri Mar 31 2017 Dheeraj Shetty <dheerajs@vmware.com> 2.4.25-1
--   Updated to version 2.4.25
-*   Tue Dec 27 2016 Xiaolin Li <xiaolinl@vmware.com> 2.4.18-8
--   BuildRequires lua, Requires lua.
-*   Wed Dec 21 2016 Anish Swaminathan <anishs@vmware.com>  2.4.18-7
--   Change config file properties for httpd.conf
-*   Thu Jul 28 2016 Divya Thaluru <dthaluru@vmware.com> 2.4.18-6
--   Removed packaging of debug files
-*   Wed Jul 27 2016 Divya Thaluru <dthaluru@vmware.com> 2.4.18-5
--   Added patch for CVE-2016-5387
-*   Tue May 24 2016 Priyesh Padmavilasom <ppadmavilasom@vmware.com> 2.4.18-4
--   GA - Bump release of all rpms
-*   Thu May 05 2016 Kumar Kaushik <kaushikk@vmware.com> 2.4.18-3
--   Adding upgrade support in pre/post/un script.
-*   Mon Mar 21 2016 Mahmoud Bassiouny <mbassiouny@vmware.com> 2.4.18-2
--   Fixing systemd service
-*   Fri Jan 22 2016 Xiaolin Li <xiaolinl@vmware.com> 2.4.18-1
--   Updated to version 2.4.18
-*   Mon Nov 23 2015 Sharath George <sharathg@vmware.com> 2.4.12-4
--   Add /etc/mime.types
-*   Tue Sep 29 2015 Xiaolin Li <xiaolinl@vmware.com> 2.4.12-3
--   Move perl script to tools package.
-*   Thu Jul 16 2015 Touseef Liaqat <tliaqat@vmware.com> 2.4.12-2
--   Added service file. Changed installation paths.
-*   Wed May 20 2015 Touseef Liaqat <tliaqat@vmware.com> 2.4.12-1
--   Initial build. First version
+* Tue Nov 08 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 2.4.54-1
+- Auto-upgrade to 2.4.54 - Fixing_CVE-2022s:_28615_and_31813
+
+* Mon Mar 21 2022 Andrew Phelps <anphel@microsoft.com> 2.4.53-1
+- Upgrade to version 2.4.53 to fix CVE-2022-22719, CVE-2022-22720, CVE-2022-22721, CVE-2022-23943
+
+* Mon Dec 27 2021 Nicolas Guibourge <nicolasg@microsoft.com> 2.4.52-1
+- Upgraded to 2.4.52 to fix CVE-2021-44224, CVE-2021-44790
+
+* Wed Oct 13 2021 Nick Samson <nisamson@microsoft.com> 2.4.51-1
+- Upgraded to 2.4.51 to fix CVE-2021-42013, CVE-2021-41773, CVE-2021-41524
+
+* Mon Sep 27 2021 Suresh Babu Chalamalasetty <schalam@microsoft.com> 2.4.49-1
+- Fix CVE-2021-40438 CVE-2021-36160 and CVE-2021-34798 CVEs by updating to 2.4.49.
+
+* Wed Aug 25 2021 Mariner Autopatcher <cblmargh@microsoft.com> 2.4.46-6
+- Added patch file(s) CVE-2021-33193.patch
+
+* Thu Jun 24 2021 Suresh Babu Chalamalasetty <schalam@microsoft.com> 2.4.46-5
+- CVE-2021-26691 fix
+
+* Tue Jun 22 2021 Suresh Babu Chalamalasetty <schalam@microsoft.com> 2.4.46-4
+- CVE-2020-13950 CVE-2021-26690 CVE-2021-30641 and CVE-2020-35452 fixes
+
+* Tue Oct 06 2020 Pawel Winogrodzki <pawelwi@microsoft.com> 2.4.46-3
+- Mark CVE-2007-0086 as nopatch
+
+* Mon Sep 28 2020 Daniel McIlvaney <damcilva@microsoft.com> 2.4.46-2
+- Mark CVE-1999-0236 CVE-1999-1412 as nopatch
+
+* Tue Aug 18 2020 Pawel Winogrodzki <pawelwi@microsoft.com> 2.4.46-1
+- Updated to 2.4.46 to resolve CVE-2020-11984.
+
+* Tue May 19 2020 Ruying Chen <v-ruyche@microsoft.com> 2.4.43-1
+- Updated to 2.4.43 to resolve the following CVEs
+- CVE-2019-10081, CVE-2019-10082, CVE-2019-10092, CVE-2019-10097
+- CVE-2019-10098, CVE-2020-1927, CVE-2020-1934
+
+* Sat May 09 2020 Nick Samson <nisamson@microsoft.com> 2.4.39-4
+- Added %%license line automatically
+
+* Tue Apr 07 2020 Pawel Winogrodzki <pawelwi@microsoft.com> 2.4.39-3
+- Updated and verified 'Source0', 'Patch0' and 'URL' tags.
+- License verified.
+- Removed '%%define sha1' line.
+
+* Tue Sep 03 2019 Mateusz Malisz <mamalisz@microsoft.com> 2.4.39-2
+- Initial CBL-Mariner import from Photon (license: Apache2).
+
+* Tue Apr 16 2019 Dweep Advani <dadvani@vmware.com> 2.4.39-1
+- Upgrading to 2.4.39 for fixing multiple CVEs
+- (1) CVE-2018-17189 (2) CVE-2018-17199 (3) CVE-2019-0190
+- (4) CVE-2019-0211 (5) CVE-2019-0215 (6) CVE-2019-0217
+
+* Thu Jan 24 2019 Dweep Advani <dadvani@vmware.com> 2.4.34-2
+- Fixed CVE-2018-11763
+
+* Wed Aug 29 2018 Tapas Kundu <tkundu@vmware.com> 2.4.34-1
+- Updated to version 2.4.34, fix CVE-2018-1333
+
+* Mon Oct 02 2017 Xiaolin Li <xiaolinl@vmware.com> 2.4.28-1
+- Updated to version 2.4.28
+
+* Mon Sep 18 2017 Alexey Makhalov <amakhalov@vmware.com> 2.4.27-3
+- Remove shadow from requires and use explicit tools for post actions
+
+* Mon Aug 07 2017 Anish Swaminathan <anishs@vmware.com>  2.4.27-2
+- Add shadow to requires for useradd/groupadd
+
+* Mon Jul 24 2017 Anish Swaminathan <anishs@vmware.com>  2.4.27-1
+- Updated to version 2.4.27 - Fixes CVE-2017-3167
+
+* Wed May 31 2017 Harish Udaiya Kumar <hudaiyakumar@vmware.com> 2.4.25-3
+- Provide preset file to disable service by default.
+
+* Fri Mar 31 2017 Dheeraj Shetty <dheerajs@vmware.com> 2.4.25-2
+- Fixing httpd.pid file write issue
+
+* Fri Mar 31 2017 Dheeraj Shetty <dheerajs@vmware.com> 2.4.25-1
+- Updated to version 2.4.25
+
+* Tue Dec 27 2016 Xiaolin Li <xiaolinl@vmware.com> 2.4.18-8
+- BuildRequires lua, Requires lua.
+
+* Wed Dec 21 2016 Anish Swaminathan <anishs@vmware.com>  2.4.18-7
+- Change config file properties for httpd.conf
+
+* Thu Jul 28 2016 Divya Thaluru <dthaluru@vmware.com> 2.4.18-6
+- Removed packaging of debug files
+
+* Wed Jul 27 2016 Divya Thaluru <dthaluru@vmware.com> 2.4.18-5
+- Added patch for CVE-2016-5387
+
+* Tue May 24 2016 Priyesh Padmavilasom <ppadmavilasom@vmware.com> 2.4.18-4
+- GA - Bump release of all rpms
+
+* Thu May 05 2016 Kumar Kaushik <kaushikk@vmware.com> 2.4.18-3
+- Adding upgrade support in pre/post/un script.
+
+* Mon Mar 21 2016 Mahmoud Bassiouny <mbassiouny@vmware.com> 2.4.18-2
+- Fixing systemd service
+
+* Fri Jan 22 2016 Xiaolin Li <xiaolinl@vmware.com> 2.4.18-1
+- Updated to version 2.4.18
+
+* Mon Nov 23 2015 Sharath George <sharathg@vmware.com> 2.4.12-4
+- Add /etc/mime.types
+
+* Tue Sep 29 2015 Xiaolin Li <xiaolinl@vmware.com> 2.4.12-3
+- Move perl script to tools package.
+
+* Thu Jul 16 2015 Touseef Liaqat <tliaqat@vmware.com> 2.4.12-2
+- Added service file. Changed installation paths.
+
+* Wed May 20 2015 Touseef Liaqat <tliaqat@vmware.com> 2.4.12-1
+- Initial build. First version

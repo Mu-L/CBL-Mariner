@@ -12,13 +12,13 @@ write_rpms_from_spec () {
     # $1 = spec file
     # $2 = file to save to
 
-    exclusiveArch=$(rpmspec -q $1 --define="with_check 0" --define="dist $DIST_TAG" --qf="%{EXCLUSIVEARCH}" --srpm 2>/dev/null)
-    if [ "$exclusiveArch" != "(none)" -a "$exclusiveArch" != "$ARCH" ]; then
+    exclusiveArch=$(rpmspec -q $1 --define="with_check 0" --define="dist $DIST_TAG" --qf="[%{EXCLUSIVEARCH} ]" --srpm 2>/dev/null)
+    if [[ -n "$exclusiveArch" && ! "$exclusiveArch" =~ "$ARCH" ]]; then
         return 0
     fi
 
     version=$(rpmspec -q $1 --define="with_check 0" --define="dist $DIST_TAG" --qf="%{VERSION}" --srpm 2>/dev/null)
-    rpmWithoutExtension=$(rpmspec -q $1 --define="with_check 0" --define="dist $DIST_TAG" --target=$ARCH 2>/dev/null)
+    rpmWithoutExtension=$(rpmspec -q $1 --define="with_check 0" --define="dist $DIST_TAG" --target=$ARCH --qf="%{nvra}\n" 2>/dev/null)
 
     for rpm in $rpmWithoutExtension
     do

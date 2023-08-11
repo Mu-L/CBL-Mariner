@@ -3,7 +3,7 @@
 %define uname_r %{version}-%{release}
 Summary:        Linux Kernel
 Name:           kernel
-Version:        5.10.52.1
+Version:        5.10.189.1
 Release:        1%{?dist}
 License:        GPLv2
 Vendor:         Microsoft Corporation
@@ -15,7 +15,8 @@ Source0:        kernel-%{version}.tar.gz
 Source1:        config
 Source2:        config_aarch64
 Source3:        sha512hmac-openssl.sh
-Source4:        cbl-mariner-ca-20210127.pem
+Source4:        cbl-mariner-ca-20211013.pem
+Patch0:         0001-clocksource-drivers-hyper-v-Re-enable-VDSO_CLOCKMODE.patch
 # Kernel CVEs are addressed by moving to a newer version of the stable kernel.
 # Since kernel CVEs are filed against the upstream kernel version and not the
 # stable kernel version, our automated tooling will still flag the CVE as not
@@ -179,6 +180,109 @@ Patch1147:      CVE-2021-34693.nopatch
 Patch1148:      CVE-2021-33624.nopatch
 Patch1149:      CVE-2021-35039.nopatch
 Patch1150:      CVE-2021-33909.nopatch
+Patch1151:      CVE-2021-37576.nopatch
+Patch1152:      CVE-2021-34556.nopatch
+Patch1153:      CVE-2021-35477.nopatch
+Patch1154:      CVE-2021-28691.nopatch
+Patch1155:      CVE-2021-3564.nopatch
+Patch1156:      CVE-2020-25639.nopatch
+Patch1157:      CVE-2021-29657.nopatch
+Patch1158:      CVE-2021-38199.nopatch
+# CVE-2021-38201 - Introducing commit not in stable tree. No fix necessary at this time.
+Patch1159:      CVE-2021-38201.nopatch
+# CVE-2021-38202  - Introducing commit not in stable tree. No fix necessary at this time.
+Patch1160:      CVE-2021-38202.nopatch
+Patch1161:      CVE-2021-38207.nopatch
+Patch1162:      CVE-2021-38204.nopatch
+Patch1163:      CVE-2021-38206.nopatch
+Patch1164:      CVE-2021-38208.nopatch
+# CVE-2021-38200 - Introducing commit not in stable tree / powerpc not supported.
+Patch1165:      CVE-2021-38200.nopatch
+# CVE-2021-38203 - Introducing commit not in stable tree. No fix necessary at this time.
+Patch1166:      CVE-2021-38203.nopatch
+Patch1167:      CVE-2021-38160.nopatch
+Patch1168:      CVE-2021-3679.nopatch
+Patch1169:      CVE-2021-38198.nopatch
+Patch1170:      CVE-2021-38209.nopatch
+Patch1171:      CVE-2021-3655.nopatch
+Patch1172:      CVE-2021-38166.nopatch
+Patch1173:      CVE-2021-38205.nopatch
+Patch1174:      CVE-2021-3573.nopatch
+Patch1175:      CVE-2021-40490.nopatch
+# CVE-2021-38300 - MIPS not supported.
+Patch1176:      CVE-2021-38300.nopatch
+Patch1177:      CVE-2021-41073.nopatch
+Patch1178:      CVE-2021-3653.nopatch
+Patch1179:      CVE-2021-42008.nopatch
+Patch1180:      CVE-2021-41864.nopatch
+Patch1181:      CVE-2021-42252.nopatch
+Patch1182:      CVE-2021-43267.nopatch
+Patch1183:      CVE-2021-42739.nopatch
+Patch1184:      CVE-2021-42327.nopatch
+Patch1185:      CVE-2021-43389.nopatch
+Patch1186:      CVE-2021-43975.nopatch
+Patch1187:      CVE-2021-45480.nopatch
+Patch1188:      CVE-2021-45486.nopatch
+Patch1189:      CVE-2021-45485.nopatch
+Patch1190:      CVE-2021-44733.nopatch
+Patch1191:      CVE-2021-45469.nopatch
+Patch1192:      CVE-2021-28714.nopatch
+Patch1193:      CVE-2021-28715.nopatch
+Patch1194:      CVE-2021-46283.nopatch
+Patch1195:      CVE-2021-45095.nopatch
+Patch1196:      CVE-2022-0185.nopatch
+Patch1197:      CVE-2022-23222.nopatch
+Patch1198:      CVE-2021-4083.nopatch
+Patch1199:      CVE-2021-4154.nopatch
+Patch1200:      CVE-2021-4001.nopatch
+Patch1201:      CVE-2022-0487.nopatch
+Patch1202:      CVE-2021-3753.nopatch
+# CVE-2021-4032 - Introducing commit not in stable tree. No fix necessary at this time.
+Patch1203:      CVE-2021-4032.nopatch
+Patch1204:      CVE-2022-24448.nopatch
+Patch1205:      CVE-2022-24959.nopatch
+Patch1206:      CVE-2022-25258.nopatch
+Patch1207:      CVE-2022-25375.nopatch
+# CVE-2022-0264 - Introducing commit not in stable tree. No fix necessary at this time.
+Patch1208:      CVE-2022-0264.nopatch
+Patch1209:      CVE-2021-45402.nopatch
+Patch1210:      CVE-2021-3752.nopatch
+Patch1211:      CVE-2021-20322.nopatch
+Patch1212:      CVE-2021-43976.nopatch
+# CVE-2021-4090 - Introducing commit not in stable tree. No fix necessary at this time.
+Patch1213:      CVE-2021-4090.nopatch
+# CVE-2021-4093 - Introducing commit not in stable tree. No fix necessary at this time.
+Patch1214:      CVE-2021-4093.nopatch
+# CVE-2022-25265 - gcc versions < 7.X.X not supported.
+Patch1215:      CVE-2022-25265.nopatch
+# CVE-2021-20320 - s390 not supported.
+Patch1216:      CVE-2021-20320.nopatch
+Patch1217:      CVE-2021-20321.nopatch
+# CVE-2022-0382 - Introducing commit not in stable tree. No fix necessary at this time.
+Patch1218:      CVE-2022-0382.nopatch
+Patch1219:      CVE-2022-0617.nopatch
+Patch1220:      CVE-2022-0847.nopatch
+Patch1221:      CVE-2021-3656.nopatch
+Patch1222:      CVE-2021-3609.nopatch
+Patch1223:      CVE-2021-3744.nopatch
+Patch1224:      CVE-2021-3640.nopatch
+Patch1225:      CVE-2021-3739.nopatch
+Patch1226:      CVE-2022-0492.nopatch
+Patch1227:      CVE-2022-0516.nopatch
+Patch1228:      CVE-2021-3732.nopatch
+# CVE-2022-0433 - Introducing commit not in stable tree. No fix necessary at this time.
+Patch1229:      CVE-2022-0433.nopatch
+# CVE-2021-4095 - Introducing commit not in stable tree. No fix necessary at this time.
+Patch1230:      CVE-2021-4095.nopatch
+Patch1231:      CVE-2022-24958.nopatch
+Patch1232:      CVE-2021-3772.nopatch
+Patch1233:      CVE-2021-4002.nopatch
+Patch1234:      CVE-2021-45868.nopatch
+Patch1235:      CVE-2022-26490.nopatch
+# CVE-2022-26878 - Introducing commit not in stable tree. No fix necessary at this time.
+Patch1236:      CVE-2022-26878.nopatch
+Patch1237:      CVE-2022-26966.nopatch
+Patch1238:      CVE-2022-27223.nopatch
 BuildRequires:  audit-devel
 BuildRequires:  bash
 BuildRequires:  bc
@@ -277,8 +381,18 @@ Group:          System Environment/Kernel
 %description dtb
 This package contains common device tree blobs (dtb)
 
+%package -n bpftool
+License: GPLv2
+Summary:        Inspection and simple manipulation of eBPF programs and maps
+
+
+%description -n bpftool
+This package contains the bpftool, which allows inspection and simple
+manipulation of eBPF programs and maps.
+
 %prep
 %setup -q -n CBL-Mariner-Linux-Kernel-rolling-lts-mariner-%{version}
+%patch0 -p1
 
 %build
 make mrproper
@@ -294,6 +408,10 @@ cp %{SOURCE2} .config
 arch="arm64"
 archdir="arm64"
 %endif
+
+# Add CBL-Mariner cert into kernel's trusted keyring
+cp %{SOURCE4} certs/mariner.pem
+sed -i 's#CONFIG_SYSTEM_TRUSTED_KEYS=""#CONFIG_SYSTEM_TRUSTED_KEYS="certs/mariner.pem"#' .config
 
 cp .config current_config
 sed -i 's/CONFIG_LOCALVERSION=""/CONFIG_LOCALVERSION="-%{release}"/' .config
@@ -314,11 +432,11 @@ if [ -s config_diff ]; then
     exit 1
 fi
 
-# Add CBL-Mariner cert into kernel's trusted keyring
-cp %{SOURCE4} certs/mariner.pem
-
 make VERBOSE=1 KBUILD_BUILD_VERSION="1" KBUILD_BUILD_HOST="CBL-Mariner" ARCH=${arch} %{?_smp_mflags}
 make -C tools perf
+
+#Compile bpftool
+make -C tools/bpf/bpftool
 
 %define __modules_install_post \
 for MODULE in `find %{buildroot}/lib/modules/%{uname_r} -name *.ko` ; do \
@@ -358,7 +476,7 @@ install -D -m 640 arch/arm64/boot/dts/freescale/imx8mq-evk.dtb %{buildroot}/boot
 install -vm 400 System.map %{buildroot}/boot/System.map-%{uname_r}
 install -vm 600 .config %{buildroot}/boot/config-%{uname_r}
 cp -r Documentation/*        %{buildroot}%{_defaultdocdir}/linux-%{uname_r}
-install -vm 644 vmlinux %{buildroot}%{_lib}/debug/lib/modules/%{uname_r}/vmlinux-%{uname_r}
+install -vm 744 vmlinux %{buildroot}%{_lib}/debug/lib/modules/%{uname_r}/vmlinux-%{uname_r}
 # `perf test vmlinux` needs it
 ln -s vmlinux-%{uname_r} %{buildroot}%{_lib}/debug/lib/modules/%{uname_r}/vmlinux
 
@@ -377,7 +495,7 @@ cp %{buildroot}/boot/.vmlinuz-%{uname_r}.hmac %{buildroot}/lib/modules/%{uname_r
 # Register myself to initramfs
 mkdir -p %{buildroot}/%{_localstatedir}/lib/initramfs/kernel
 cat > %{buildroot}/%{_localstatedir}/lib/initramfs/kernel/%{uname_r} << "EOF"
---add-drivers "xen-scsifront xen-blkfront xen-acpi-processor xen-evtchn xen-gntalloc xen-gntdev xen-privcmd xen-pciback xenfs hv_utils hv_vmbus hv_storvsc hv_netvsc hv_sock hv_balloon cn virtio_blk virtio-rng virtio_console virtio_crypto virtio_mem vmw_vsock_virtio_transport vmw_vsock_virtio_transport_common 9pnet_virtio"
+--add-drivers "xen-scsifront xen-blkfront xen-acpi-processor xen-evtchn xen-gntalloc xen-gntdev xen-privcmd xen-pciback xenfs hv_utils hv_vmbus hv_storvsc hv_netvsc hv_sock hv_balloon virtio_blk virtio-rng virtio_console virtio_crypto virtio_mem vmw_vsock_virtio_transport vmw_vsock_virtio_transport_common 9pnet_virtio vrf"
 EOF
 
 #    Cleanup dangling symlinks
@@ -406,6 +524,9 @@ cp scripts/module.lds %{buildroot}%{_prefix}/src/linux-headers-%{uname_r}/script
 # fixdep: error opening depfile: ./.plugin_cfg80211.o.d: No such file or directory
 # Linux version that was affected is 4.4.26
 make -C tools JOBS=1 DESTDIR=%{buildroot} prefix=%{_prefix} perf_install
+
+# Install bpftool
+make -C tools/bpf/bpftool DESTDIR=%{buildroot} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir} install
 
 %triggerin -- initramfs
 mkdir -p %{_localstatedir}/lib/rpm-state/initramfs/pending
@@ -508,7 +629,258 @@ ln -sf linux-%{uname_r}.cfg /boot/mariner.cfg
 /boot/dtb/fsl-imx8mq-evk.dtb
 %endif
 
+%files -n bpftool
+%{_sbindir}/bpftool
+%{_sysconfdir}/bash_completion.d/bpftool
+
 %changelog
+* Wed Aug 09 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.189.1-1
+- Auto-upgrade to 5.10.189.1
+
+* Mon Jul 31 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.188.1-1
+- Auto-upgrade to 5.10.188.1
+
+* Wed Jul 26 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.187.1-1
+- Auto-upgrade to 5.10.187.1
+
+* Wed Jun 28 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.185.1-1
+- Auto-upgrade to 5.10.185.1
+
+* Tue Jun 13 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.183.1-1
+- Auto-upgrade to 5.10.183.1
+
+* Fri Jun 02 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.181.1-1
+- Auto-upgrade to 5.10.181.1
+
+* Tue May 23 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.180.1-1
+- Auto-upgrade to 5.10.180.1
+
+* Wed May 10 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.179.1-1
+- Auto-upgrade to 5.10.179.1
+
+* Tue Apr 11 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.177.1-1
+- Auto-upgrade to 5.10.177.1
+
+* Tue Mar 14 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.174.1-1
+- Auto-upgrade to 5.10.174.1
+
+* Mon Mar 06 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.172.1-1
+- Auto-upgrade to 5.10.172.1
+
+* Wed Feb 22 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.168.1-1
+- Auto-upgrade to 5.10.168.1
+
+* Wed Feb 15 2023 Rachel Menge <rachelmenge@microsoft.com> - 5.10.167.1-2
+- Install vmlinux as root executable for debuginfo
+
+* Tue Feb 07 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.167.1-1
+- Auto-upgrade to 5.10.167.1
+
+* Thu Jan 26 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.165.1-1
+- Auto-upgrade to 5.10.165.1
+
+* Fri Jan 20 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.164.1-1
+- Auto-upgrade to 5.10.164.1
+
+* Sat Jan 14 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.162.1-1
+- Auto-upgrade to 5.10.162.1
+
+* Fri Dec 23 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.161.1-1
+- Auto-upgrade to 5.10.161.1
+
+* Tue Dec 13 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.158.1-1
+- Auto-upgrade to 5.10.158.1
+
+* Wed Dec 07 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.157.1-1
+- Auto-upgrade to 5.10.157.1
+
+* Tue Nov 29 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.156.1-1
+- Auto-upgrade to 5.10.156.1
+
+* Fri Nov 18 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.155.1-1
+- Auto-upgrade to 5.10.155.1
+
+* Tue Nov 08 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.153.1-1
+- Auto-upgrade to 5.10.153.1
+
+* Tue Nov 01 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.152.1-1
+- Upgrade to 5.10.152.1
+
+* Wed Oct 19 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.149.1-1
+- Upgrade to 5.10.149.1
+
+* Tue Sep 27 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.145.1-1
+- Upgrade to 5.10.145.1
+
+* Thu Sep 22 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.144.1-1
+- Upgrade to 5.10.144.1
+
+* Wed Sep 14 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.142.1-1
+- Upgrade to 5.10.142.1
+
+* Thu Sep 08 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.139.1-1
+- Upgrade to 5.10.139.1
+
+* Thu Sep 01 2022 Chris Co <chrco@microsoft.com> - 5.10.134.1-2
+- Enable 32-bit time syscall support
+
+* Tue Aug 23 2022 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 5.10.134.1-1
+- Upgrade to 5.10.134.1
+
+* Wed Aug 17 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.133.1-1
+- Update source to 5.10.133.1
+
+* Sun Jul 24 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.131.1-1
+- Update source to 5.10.131.1
+
+* Wed Jul 06 2022 Max Brodeur-Urbas <maxbr@microsoft.com> - 5.10.128.1-1
+- Update source to 5.10.128.1
+- Address CVE-2022-32296, CVE-2022-1652, CVE-2022-1786, CVE-2022-0854,
+  CVE-2021-20194, CVE-2021-32078, CVE-2021-37159
+
+* Mon Jun 20 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.123.1-1
+- Update source to 5.10.123.1
+
+* Wed Jun 01 2022 Minghe Ren <mingheren@microsoft.com> - 5.10.117.1-2
+- Disable SMACK kernel configuration
+
+* Tue May 24 2022 Max Brodeur-Urbas <maxbr@microsoft.com> - 5.10.117.1-1
+- Update source to 5.10.117.1
+- Address CVE-2022-28893 
+
+* Tue May 17 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.116.1-1
+- Update source to 5.10.116.1
+- Address CVE-2022-1048, CVE-2022-1353, CVE-2022-29582, CVE-2022-1195
+  CVE-2022-0494, CVE-2022-1015, CVE-2022-29968
+
+* Tue Apr 19 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.111.1-1
+- Update source to 5.10.111.1
+- Enable CONFIG_BPF_UNPRIV_DEFAULT_OFF
+- Address CVE-2021-4023, CVE-2021-4157, CVE-2022-0435, CVE-2022-0998
+  CVE-2022-28356, CVE-2022-28388, CVE-2022-28389, CVE-2022-28390, 
+  CVE-2021-4203, CVE-2022-0322, CVE-2022-27950, CVE-2021-4148, 
+  CVE-2021-4149, CVE-2022-28796, CVE-2022-29156, CVE-2021-4202,
+  CVE-2022-0500, CVE-2022-0330, CVE-2020-26558, CVE-2021-4197,
+  CVE-2021-4150, CVE-2020-35501
+
+* Fri Apr 01 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.109.1-2
+- Remove hardcoded mariner.pem from configs and instead insert during
+  the build phase
+- Address CVE-2022-1055, CVE-2022-27666, CVE-2022-0995, CVE-2021-44879
+
+* Tue Mar 29 2022 Max Brodeur-Urbas <maxbr@microsoft.com> - 5.10.109.1-1
+- Update source to 5.10.109.1
+- Remove CVE-2022-24958.patch and CVE-2022-1016.patch
+- Enable CONFIG_MITIGATE_SPECTRE_BRANCH_HISTORY
+- Address CVE-2021-3772, CVE-2021-4002, CVE-2021-45868, CVE-2022-26490,
+  CVE-2022-26878, CVE-2022-26966, CVE-2022-27223
+
+* Fri Mar 25 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.102.1-3
+- Apply CVE-2022-1016.patch
+
+* Fri Mar 18 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.102.1-2
+- Disable CONFIG_FW_LOADER_USER_HELPER_FALLBACK
+
+* Mon Feb 28 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.102.1-1
+- Update source to 5.10.102.1
+- Apply CVE-2022-24958.patch
+- Remove CVE-2021-43976.patch and CVE-2022-0435.patch
+- Address CVE-2021-3753, CVE-2021-4032, CVE-2022-24448, CVE-2022-24959,
+  CVE-2022-25258, CVE-2022-25375, CVE-2022-0264, CVE-2021-45402,
+  CVE-2021-3752, CVE-2021-20322, CVE-2021-4090, CVE-2021-4093,
+  CVE-2022-25265, CVE-2021-20320, CVE-2021-20321, CVE-2022-0382,
+  CVE-2022-0617, CVE-2022-0847, CVE-2021-3656, CVE-2021-3609,
+  CVE-2021-3744, CVE-2021-3640, CVE-2021-3739, CVE-2022-0492,
+  CVE-2022-0516, CVE-2021-3732, CVE-2022-0433, CVE-2021-4095
+
+* Fri Feb 11 2022 Vince Perri <viperri@microsoft.com> - 5.10.93.1-4
+- Add compressed firmware support
+
+* Wed Feb 09 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.93.1-3
+- Address CVE-2022-0435 with patch
+
+* Thu Jan 27 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.93.1-2
+- Address CVE-2021-4083
+
+* Mon Jan 24 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.93.1-1
+- Update source to 5.10.93.1
+- Address CVE-2021-46283, CVE-2021-45095, CVE-2022-0185, CVE-2022-23222
+
+* Thu Jan 20 2022 Chris Co <chrco@microsoft.com> - 5.10.89.1-2
+- Rotate Mariner cert 
+
+* Sun Jan 16 2022 Rachel Menge <rachelmenge@microsoft.com> - 5.10.89.1-1
+- Update source to 5.10.89.1
+- Address CVE-2021-44733, CVE-2021-45469, CVE-2021-28714, CVE-2021-28715
+- Remove patch add-linux-syscall-license-info.patch
+
+* Fri Jan 14 2022 Henry Li <lihl@microsoft.com> - 5.10.88.1-3
+- Add patch to export mmput_async
+
+* Wed Jan 12 2022 Cameron Baird <cameronbaird@microsoft.com> - 5.10.88.1-2
+- Addressed CVE-2021-45485
+
+* Mon Jan 03 2022 Cameron Baird <cameronbaird@microsoft.com> - 5.10.88.1-1
+- Update Kernel source to 5.10.88.1
+- Addressed CVE-2021-43975, CVE-2021-45480, CVE-2021-45486
+- Patch for CVE-2021-43976
+
+* Mon Nov 29 2021 Suresh Babu Chalamalasetty <schalam@microsoft.com> - 5.10.78.1-2
+- Enable CONFIG_COMPAT kernel configs
+
+* Mon Nov 08 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.78.1-1
+- Update source to 5.10.78.1
+- Address CVE-2021-43267, CVE-2021-42739, CVE-2021-42327, CVE-2021-43389
+- Add patch to fix SPDX-License-Identifier in headers
+- Revert ebpf configs due to increased boot times
+
+* Tue Oct 26 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.74.1-2
+- Update configs for eBPF support
+- Add dwarves Build-requires
+
+* Tue Oct 19 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.74.1-1
+- Update source to 5.10.74.1
+- Address CVE-2021-41864, CVE-2021-42252
+- License verified
+
+* Thu Oct 07 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.69.1-1
+- Update source to 5.10.69.1
+- Address CVE-2021-38300, CVE-2021-41073, CVE-2021-3653, CVE-2021-42008
+
+* Wed Sep 22 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.64.1-3
+- Enable CONFIG_NET_VRF
+- Add vrf to drivers for dracut
+
+* Tue Sep 21 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.64.1-2
+- Export `bpftool` subpackage
+
+* Mon Sep 20 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.64.1-1
+- Update source to 5.10.64.1
+- Address CVE-2021-40490
+
+* Mon Sep 13 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.60.1-2
+- Remove cn from dracut drivers argument
+
+* Mon Aug 23 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.60.1-1
+- Update source to 5.10.60.1
+- Remove patch for CDROM eject errors
+- Address CVE-2021-38166, CVE-2021-38205, CVE-2021-3573
+
+* Thu Aug 12 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.57.1-1
+- Update source to 5.10.57.1
+- Address CVE-2021-37576, CVE-2021-34556, CVE-2021-35477, CVE-2021-28691,
+  CVE-2021-3564, CVE-2020-25639, CVE-2021-29657, CVE-2021-38199,
+  CVE-2021-38201, CVE-2021-38202, CVE-2021-38207, CVE-2021-38204,
+  CVE-2021-38206, CVE-2021-38208, CVE-2021-38200, CVE-2021-38203,
+  CVE-2021-38160, CVE-2021-3679, CVE-2021-38198, CVE-2021-38209,
+  CVE-2021-3655
+
+* Tue Aug 03 2021 Chris Co <chrco@microsoft.com> - 5.10.52.1-3
+- Add patch to fix VDSO in HyperV
+
+* Fri Jul 30 2021 Chris Co <chrco@microsoft.com> - 5.10.52.1-2
+- Add patch to fix CDROM eject errors
+
 * Tue Jul 20 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.52.1-1
 - Update source to 5.10.52.1
 - Address CVE-2021-35039, CVE-2021-33909

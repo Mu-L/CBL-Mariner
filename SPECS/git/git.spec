@@ -1,6 +1,6 @@
 Summary:        Fast distributed version control system
 Name:           git
-Version:        2.23.4
+Version:        2.33.8
 Release:        1%{?dist}
 License:        GPLv2
 URL:            https://git-scm.com/
@@ -38,7 +38,8 @@ Requires: git >= 2.1.2
 These are the additional language files of git.
 
 %prep
-%setup -q
+%autosetup -p1
+
 %build
 %configure \
     CFLAGS="%{optflags}" \
@@ -87,6 +88,18 @@ rm -rf %{buildroot}/*
 %defattr(-,root,root)
 
 %changelog
+* Thu Apr 27 2023 Sean Dougherty <sdougherty@microsoft.com> - 2.33.8-1
+- Upgrade git to 2.33.8 to address CVE-2023-25652 and CVE-2023-29007
+
+* Tue Feb 28 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 2.33.7-1
+- Auto-upgrade to 2.33.7 - fix CVE-2023-22490, CVE-2023-23946
+
+* Fri Jan 27 2023 Muhammad Falak <mwani@microsoft.com> - 2.33.6-1
+- Bump version to 2.33.6 to address CVE-2022-23521 and CVE-2022-41903
+- Drop un-needed patch
+
+*   Fri Sep 10 2021 Mariner Autopatcher <cblmargh@microsoft.com> 2.23.4-2
+-   Added patch file(s) CVE-2021-40330.patch
 *   Wed Apr 07 2021 Suresh Babu Chalamalasetty <schalam@microsoft.com> 2.23.4-1
 -   Update to version 2.23.4 for CVE-2021-21300 fix.
 *   Mon Oct 19 2020 Andrew Phelps <anphel@microsoft.com> 2.23.3-2

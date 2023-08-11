@@ -1,30 +1,25 @@
 Summary:        Open source remote procedure call (RPC) framework
 Name:           grpc
 Version:        1.35.0
-Release:        4%{?dist}
+Release:        9%{?dist}
 License:        ASL 2.0
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
 Group:          Applications/System
 URL:            https://www.grpc.io
-#Source0:        https://github.com/grpc/grpc/archive/v%{version}/%{name}-%{version}.tar.gz
-Source0:        %{name}-%{version}.tar.gz
-# A buildable grpc environment needs functioning submodules that do not work from the archive download
-# To recreate the tar.gz run the following
-#  git clone -b RELEASE_TAG_HERE --depth 1 https://github.com/grpc/grpc
-#  pushd grpc
-#  git submodule update --depth 1 --init
-#  popd
-#  sudo mv grpc grpc-%{version}
-#  sudo tar -cvf grpc-%{version}.tar.gz grpc-%{version}/
+Source0:        https://github.com/grpc/grpc/archive/v%{version}/%{name}-%{version}.tar.gz
+
+BuildRequires:  abseil-cpp-devel
 BuildRequires:  c-ares-devel
 BuildRequires:  cmake
 BuildRequires:  gcc
 BuildRequires:  git
 BuildRequires:  openssl-devel
 BuildRequires:  protobuf-devel
+BuildRequires:  re2-devel
 BuildRequires:  zlib-devel
 
+Requires:       abseil-cpp
 Requires:       c-ares
 Requires:       openssl
 Requires:       protobuf
@@ -54,14 +49,22 @@ The grpc-plugins package contains the grpc plugins.
 %autosetup
 
 %build
+# Updating used C++ version to be compatible with the build dependencies.
+# Without this fix 'grpc' compiles with C++11 against 'abseil-cpp' headers,
+# which generate a different set of APIs than the ones provided by the BR 'abseil-cpp'.
+CXX_VERSION=$(c++ -dM -E -x c++ /dev/null | grep -oP "(?<=__cplusplus \d{2})\d{2}")
+
 mkdir -p cmake/build
 cd cmake/build
 cmake ../.. -DgRPC_INSTALL=ON                \
    -DBUILD_SHARED_LIBS=ON                    \
    -DCMAKE_BUILD_TYPE=Release                \
+   -DCMAKE_CXX_STANDARD=$CXX_VERSION         \
    -DCMAKE_INSTALL_PREFIX:PATH=%{_prefix}    \
+   -DgRPC_ABSL_PROVIDER:STRING='package'     \
    -DgRPC_CARES_PROVIDER:STRING='package'    \
    -DgRPC_PROTOBUF_PROVIDER:STRING='package' \
+   -DgRPC_RE2_PROVIDER:STRING='package'      \
    -DgRPC_SSL_PROVIDER:STRING='package'      \
    -DgRPC_ZLIB_PROVIDER:STRING='package'
 %make_build
@@ -69,7 +72,6 @@ cmake ../.. -DgRPC_INSTALL=ON                \
 %install
 cd cmake/build
 %make_install
-find %{buildroot} -name '*.a' -delete
 find %{buildroot} -name '*.cmake' -delete
 
 %files
@@ -78,9 +80,21 @@ find %{buildroot} -name '*.cmake' -delete
 %{_datadir}/grpc/roots.pem
 
 %files devel
-%{_includedir}/*
-%{_libdir}/*.so
-%{_lib64dir}/*.so
+%{_includedir}/grpc
+%{_includedir}/grpc++
+%{_includedir}/grpcpp
+%{_libdir}/libaddress_sorting.so
+%{_libdir}/libgpr.so
+%{_libdir}/libgrpc++.so
+%{_libdir}/libgrpc++_alts.so
+%{_libdir}/libgrpc++_error_details.so
+%{_libdir}/libgrpc++_reflection.so
+%{_libdir}/libgrpc++_unsecure.so
+%{_libdir}/libgrpc.so
+%{_libdir}/libgrpc_plugin_support.so
+%{_libdir}/libgrpc_unsecure.so
+%{_libdir}/libgrpcpp_channelz.so
+%{_libdir}/libupb.so
 %{_libdir}/pkgconfig/*.pc
 
 %files plugins
@@ -88,6 +102,21 @@ find %{buildroot} -name '*.cmake' -delete
 %{_bindir}/grpc_*_plugin
 
 %changelog
+* Tue Jun 6 2023 Dallas Delaney <dadelan@microsoft.com> - 1.35.0-9
+- Rebuild against c-ares to Fix CVE-2023-32067, CVE-2023-31130, CVE-2023-31147
+
+* Mon Nov 29 2021 Pawel Winogrodzki <pawelwi@microsoft.com> - 1.35.0-8
+- Building with CBL-Mariner's default C++ version.
+
+* Mon Nov 15 2021 Pawel Winogrodzki <pawelwi@microsoft.com> - 1.35.0-7
+- Use pre-installed "re2" and "abseil-cpp" instead of building them.
+
+* Wed Nov 03 2021 Pawel Winogrodzki <pawel.winogrodzki@microsoft.com> - 1.35.0-6
+- Bringing back the "libaddress_sorting" library.
+
+* Tue Sep 28 2021 Andrew Phelps <anphel@microsoft.com> - 1.35.0-5
+- Explicitly provide grpc-devel files to avoid packaging conflicts with re2-devel.
+
 * Mon Jun 21 2021 Pawel Winogrodzki <pawelwi@microsoft.com> - 1.35.0-4
 - Switch to system package for protobuf dependency.
 
